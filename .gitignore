@@ -1,0 +1,15 @@
+*.db
+*.pyc
+.*.swo
+.*.swp
+.env
+.idea
+.swp
+.venv
+__pycache__
+docs/_build
+.cache
+dev.toml
+
+.tox/
+junit-*.xml

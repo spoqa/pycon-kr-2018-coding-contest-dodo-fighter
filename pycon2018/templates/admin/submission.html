@@ -1,0 +1,16 @@
+{% extends "backbone.html" %}
+
+{% block body %}
+
+<h2>제출 정보</h2>
+
+<ul>
+  <li>업로드 일시: {{ submission.created_at.strftime('%Y-%m-%d %H:%M') }}</li>
+  <li>사용자: <a href="https://github.com/{{ submission.user.display_name }}">@{{ submission.user.display_name }}</a></li>
+</ul>
+
+<h2>코드</h2>
+
+<pre>{{ submission.code }}</pre>
+
+{% endblock %}

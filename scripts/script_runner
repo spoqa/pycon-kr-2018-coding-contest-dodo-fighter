@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+import _ast
+import ast
+import sys
+
+
+PERMITTED_MODULES = ['json', 'math', 'random', 'sys']
+
+
+class ProhibitedModuleException(Exception):
+
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return self.name
+
+
+def traverse_node(node):
+    if isinstance(node, _ast.Import):
+        if node.names[0].name not in PERMITTED_MODULES:
+            raise ProhibitedModuleException(node.names[0].name)
+    elif isinstance(node, _ast.ImportFrom):
+        if node.module not in PERMITTED_MODULES:
+            raise ProhibitedModuleException(node.module)
+    elif hasattr(node, 'body'):
+        for n in node.body:
+            traverse_node(n)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) < 2:
+        sys.stderr.write(f'Usage: {sys.argv[0]} [FILENAME]\n')
+        sys.exit(1)
+    root = ast.parse(open(sys.argv[1]).read())
+    traverse_node(root)
+    exec(compile(root, filename='<ast>', mode='exec'))

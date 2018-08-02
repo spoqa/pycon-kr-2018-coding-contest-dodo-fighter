@@ -1,0 +1,50 @@
+{% extends "backbone.html" %}
+
+{% block body %}
+  <h1>도도-파이터</h1>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <h2>에러</h2>
+      <ul>
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  <h2>로그인</h2>
+  {% if current_user.is_authenticated %}
+    {{ current_user.display_name }}로 로그인됨 <a href="{{ url_for('.logout') }}">[로그아웃]</a>
+  {% else %}
+    <a href="https://github.com/login/oauth/authorize?scope=user:email&client_id={{ github_oauth_client_id }}">GitHub으로 로그인</a>
+  {% endif %}
+  <h2>현재 진행중인 토너먼트</h2>
+  {% if current_tournament %}
+    {% if current_tournament.final_match %}
+      현재 토너먼트는 마감되었습니다. <a href="{{ url_for('.game', tournament_id=current_tournament.id) }}">보기</a>
+    {% else %}
+      현재 제출 수: {{ count }}<br />
+      제출 기한: {{ current_tournament.finish_at.strftime('%Y-%m-%d %H:%M') }} <br />
+      {% if submission %}
+        이미 {{ submission.created_at.strftime('%Y-%m-%d %H:%M') }} 에 올린 제출물이 있습니다.<br />
+      {% endif %}
+      {% if submission and submission.match_item %}
+        제출이 이미 토너먼트에 올라갔으므로 수정할 수 없습니다.<br />
+      {% elif current_user.is_authenticated %}
+        {% if submission %}
+          <h2>수정</h2>
+        {% else %}
+          <h2>제출</h2>
+        {% endif %}
+        <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data">
+          <input type="file" name="script" />
+          <input type="submit" />
+        </form>
+      {% endif %}
+    {% endif %}
+  {% else %}
+    진행중인 토너먼트가 없습니다.
+  {% endif %}
+{% endblock %}
+
+

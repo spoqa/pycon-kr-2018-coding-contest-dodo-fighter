@@ -1,0 +1,36 @@
+{% extends "backbone.html" %}
+
+{% block body %}
+
+
+  <h2>매치 기록</h2>
+
+  {% for i in range(match_set.final_match.iteration + 1) %}
+
+    {% if i in tree %}
+      <h3>{{ i + 1 }}차전</h3>
+
+      <ul>
+      {% for match in tree[i] %}
+        <li>
+          <p>
+            <a href="{{ url_for('.submission', submission_id=match.p1.submission.id) }}">@{{ match.p1.submission.user.display_name }}</a>
+            VS
+            <a href="{{ url_for('.submission', submission_id=match.p2.submission.id) }}">@{{ match.p2.submission.user.display_name }}</a>
+            <br />
+            <a href="{{ url_for('.show_match', match_id=match.id) }}">경기 결과</a> :
+            {% if match.winner %}
+              @{{ match.winner.submission.user.display_name }} 승리
+            {% else %}
+              무승부
+            {% endif %}
+          </p>
+        </li>
+      {% endfor %}
+      </ul>
+      
+    {% endif %}
+
+  {% endfor %}
+
+{% endblock %}

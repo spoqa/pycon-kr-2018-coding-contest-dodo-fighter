@@ -1,0 +1,46 @@
+{% extends "backbone.html" %}
+
+{% block body %}
+
+  <h2>조가 배정되지 않은 제출 목록</h2>
+
+  {% set swm_count = submissions_without_match.count() %}
+  {% if swm_count > 0 %}
+    <ul>
+      {% for item in submissions_without_match %}
+        <li>{{ item.id }} <a href="https://github.com/{{ item.user.display_name }}">(@{{ item.user.display_name }})</a></li>
+      {% endfor %}
+    </ul>
+    <form action="{{ url_for('.create_match_set', tournament_id=tournament.id) }}" method="POST">
+      <input name="count" type="text" value="{{ swm_count }}" />명
+      <input type="submit" value="조 생성" />
+    </form>
+  {% else %}
+    없음
+  {% endif %}
+
+  <h2>조 목록</h2>
+  
+  {% for i, match_set in enumerate(tournament.match_sets) %}
+    <h3>{{ i+1 }}조</h3>
+
+    <ul>
+      {% for item in match_set.items %}
+        <li><a href="{{ url_for('.submission', submission_id=item.submission.id) }}">{{ item.submission.id }}</a> <a href="https://github.com/{{ item.submission.user.display_name }}">(@{{ item.submission.user.display_name }})</a></li>
+      {% endfor %}
+    </ul>
+    작업:
+    {% if not match_set.final_match %}<a href="{{ url_for('.create_matches', set_id=match_set.id) }}">매칭</a>{% endif %}
+    {% if match_set.final_match and not match_set.tournament.final_match %}<a href="{{ url_for('.clear_matches', set_id=match_set.id) }}">매칭기록 삭제</a>{% endif %}
+    {% if match_set.final_match %}<a href="{{ url_for('.match_set', set_id=match_set.id) }}">매칭기록 보기</a>{% endif %}
+  {% endfor %}
+
+  <h2>결산</h2>
+
+  {% if tournament.final_match %}
+    <a href="{{ url_for('.game', tournament_id=tournament.id) }}">결과 보기</a>
+  {% else %}
+    <a href="{{ url_for('.finalize_matches', tournament_id=tournament.id) }}">매칭 결산</a>
+  {% endif %}
+
+{% endblock %}
