@@ -1,0 +1,9 @@
+[database]
+url = ""
+
+[github]
+oauth_client_id = ""
+oauth_client_secret = ""
+
+[web]
+secret_key = ""
