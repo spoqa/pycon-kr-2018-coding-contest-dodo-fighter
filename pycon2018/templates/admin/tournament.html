@@ -38,9 +38,41 @@
   <h2>결산</h2>
 
   {% if tournament.final_match %}
-    <a href="{{ url_for('.game', tournament_id=tournament.id) }}">결과 보기</a>
+    <a href="{{ url_for('ep.game', tournament_id=tournament.id) }}">결과 보기</a>
   {% else %}
     <a href="{{ url_for('.finalize_matches', tournament_id=tournament.id) }}">매칭 결산</a>
+  {% endif %}
+
+  {% if tree %}
+
+    {% for i in range(tournament.final_match.iteration + 1) %}
+    
+      {% if i in tree %}
+        <h3>{{ i + 1 }}차전</h3>
+        
+        <ul>
+          {% for match in tree[i] %}
+            <li>
+              <p>
+                <a href="{{ url_for('.submission', submission_id=match.p1.submission.id) }}">@{{ match.p1.submission.user.display_name }}</a>
+                VS
+                <a href="{{ url_for('.submission', submission_id=match.p2.submission.id) }}">@{{ match.p2.submission.user.display_name }}</a>
+                <br />
+                <a href="{{ url_for('ep.show_match', match_id=match.id) }}">경기 결과</a> :
+                {% if match.winner %}
+                  @{{ match.winner.submission.user.display_name }} 승리
+                {% else %}
+                  무승부
+                {% endif %}
+              </p>
+            </li>
+          {% endfor %}
+        </ul>
+        
+      {% endif %}
+      
+    {% endfor %}
+
   {% endif %}
 
 {% endblock %}

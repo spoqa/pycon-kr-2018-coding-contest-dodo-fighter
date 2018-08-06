@@ -66,6 +66,10 @@ class App(Configuration):
         'game.evaluator_path', str, default='script_runner'
     )
 
+    sentry_dsn = config_property(
+        'sentry.dsn', str, default=None
+    )
+
     @cached_property
     def submission_open(self) -> typing.Optional[datetime.datetime]:
         if self.submission_open_ is None:

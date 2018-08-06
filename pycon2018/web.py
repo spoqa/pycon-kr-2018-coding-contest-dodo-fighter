@@ -8,6 +8,7 @@ from flask import (Blueprint, Flask, abort, current_app as current_flask_app,
 from flask_cdn import CDN
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
+from raven.contrib.flask import Sentry
 from requests import get, post
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
@@ -25,7 +26,8 @@ from .util import build_match_tree, ngroup
 
 
 current_app = LocalProxy(lambda: current_flask_app.config['APP'])
-ep = Blueprint('endpoints', __name__)
+ep = Blueprint('ep', __name__)
+admin = Blueprint('admin', __name__, url_prefix='/admin')
 login_manager = LoginManager()
 cdn = CDN()
 
@@ -56,7 +58,7 @@ def load_user(user_id: str):
 
 
 def ongoing_tournament_required(f):
-    @functools.wraps
+    @functools.wraps(f)
     def wrapper(*args, **kwargs):
         if g.current_tournament is None:
             abort(404)
@@ -64,14 +66,10 @@ def ongoing_tournament_required(f):
     return wrapper
 
 
-def moderator_only(f):
-    @functools.wraps
-    def wrapper(*args, **kwargs):
-        if (current_user is None or not isinstance(current_user, User) or
-            not current_user.moderator):
-            abort(403)
-        return f(*args, **kwargs)
-    return wrapper
+@admin.before_request
+def check_moderator():
+    if not current_user.is_authenticated or not current_user.moderator:
+        abort(403)
 
 
 @ep.before_request
@@ -125,10 +123,11 @@ def oauth_authorized():
     assert user_response.status_code == 200
     user_data = user_response.json()
     try:
-        user = session.query(User).filter_by(email=user_data['email']).one()
+        user = session.query(User).filter_by(
+            display_name=user_data['login']
+        ).one()
     except NoResultFound:
         user = User(
-            email=user_data['email'],
             display_name=user_data['login'],
             avatar=user_data['avatar_url']
         )
@@ -214,9 +213,7 @@ def submit(tournament_id: uuid.UUID):
     return redirect(url_for('.index'))
 
 
-@moderator_only
-@ep.route('/admin/tournaments/<uuid:tournament_id>',
-          methods=['GET'])
+@admin.route('/tournaments/<uuid:tournament_id>', methods=['GET'])
 def tournament(tournament_id: uuid.UUID):
     tournament = session.query(Tournament).filter_by(
         id=tournament_id
@@ -226,14 +223,17 @@ def tournament(tournament_id: uuid.UUID):
     ).filter(
         TournamentMatchSetItem.id.is_(None)
     ).order_by(Submission.created_at)
+    if tournament.final_match:
+        tree = build_match_tree(tournament.final_match)
+    else:
+        tree =None
     return render_template('admin/tournament.html', tournament=tournament,
                            submissions_without_match=submissions_without_match,
-                           enumerate=enumerate)
+                           tree=tree, enumerate=enumerate, range=range)
 
 
-@moderator_only
-@ep.route('/admin/tournaments/<uuid:tournament_id>/match_sets',
-          methods=['POST'])
+@admin.route('/tournaments/<uuid:tournament_id>/match_sets',
+             methods=['POST'])
 def create_match_set(tournament_id: uuid.UUID):
     count = int(request.form['count']) if request.form.get('count') else 0
     tournament = session.query(Tournament).filter_by(
@@ -257,15 +257,13 @@ def create_match_set(tournament_id: uuid.UUID):
     return redirect(url_for('.tournament', tournament_id=tournament_id))
 
 
-@moderator_only
-@ep.route('/admin/submissions/<uuid:submission_id>')
+@admin.route('/submissions/<uuid:submission_id>')
 def submission(submission_id: uuid.UUID):
     submission = session.query(Submission).filter_by(id=submission_id).one()
     return render_template('admin/submission.html', submission=submission)
 
 
-@moderator_only
-@ep.route('/admin/match_sets/<uuid:set_id>')
+@admin.route('/match_sets/<uuid:set_id>')
 def match_set(set_id: uuid.UUID):
     mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
     if not mset.final_match:
@@ -275,43 +273,54 @@ def match_set(set_id: uuid.UUID):
                            range=range)
 
 
-@moderator_only
-@ep.route('/admin/match_sets/<uuid:set_id>/create_match')
+@admin.route('/match_sets/<uuid:set_id>/create_match')
 def create_matches(set_id: uuid.UUID):
     mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
     if mset.final_match:
         return redirect(url_for('.tournament',
                                 tournament_id=mset.tournament.id))
-    subs = mset.items
+    subs = [(i, None) for i in mset.items]
     level = 0
-    matches = {}
     match = None
     while len(subs) > 1:
-        pairs = ngroup(2, subs)
-        subs = []
+        pairs = ngroup(2, subs, fillvalue=(None, None))
+        nsubs = []
         for pair in pairs:
-            if pair[1] is not None:
+            print(pair)
+            match = Match(
+                p1=pair[0][0],
+                p2=pair[1][0],
+                p1_parent=pair[0][1],
+                p2_parent=pair[1][1],
+                iteration=level,
+                match_data=[]
+            )
+            if pair[0][0] is not None and pair[1][0] is not None:
                 winner, data = run_matches_submission(
-                    current_app, pair[0].submission, pair[1].submission
+                    current_app, pair[0][0].submission, pair[1][0].submission
                 )
-                if winner:
-                    subs.append(pair[winner])
-                    wm = pair[winner]
-                match = Match(
-                    p1=pair[0],
-                    p2=pair[1],
-                    p1_parent=matches.get(pair[0].id),
-                    p2_parent=matches.get(pair[1].id),
-                    winner=wm,
-                    iteration=level,
-                    match_data=data
-                )
-                matches[pair[0].id] = match
-                matches[pair[1].id] = match
-                session.add(match)
+                if winner is not None:
+                    nsubs.append((pair[winner][0], match))
+                    wm = pair[winner][0]
+                else:
+                    nsubs.append((None, match))
+                    wm = None
+                match.match_data = data
             else:
-                subs.append(pair[0])
+                if pair[0][0]:
+                    nsubs.append((pair[0][0], match))
+                    wm = pair[0][0]
+                elif pair[1][0]:
+                    nsubs.append((pair[1][0], match))
+                    wm = pair[1][0]
+                else:
+                    subs.append((None, match))
+                    wm = None
+            match.winner = wm
+            session.add(match)
         level += 1
+        subs.clear()
+        subs.extend(nsubs)
     if len(subs) == 1 and match:
         mset.final_match = match
         session.commit()
@@ -320,48 +329,54 @@ def create_matches(set_id: uuid.UUID):
     return redirect(url_for('.tournament', tournament_id=mset.tournament.id))
 
 
-@moderator_only
-@ep.route('/admin/tournaments/<uuid:tournament_id>/create_matches')
+@admin.route('/tournaments/<uuid:tournament_id>/create_matches')
 def finalize_matches(tournament_id: uuid.UUID):
     tournament = session.query(Tournament).filter_by(id=tournament_id).one()
     for match_set in tournament.match_sets:
         if match_set.final_match is None:
             abort(400)
     level = 0
-    matches = {}
-    msets = tournament.match_sets
-    while True:
-        pairs = ngroup(2, msets)
-        msets = []
+    msets = [(i, None) for i in tournament.match_sets]
+    while len(msets) > 1:
+        pairs = ngroup(2, msets, fillvalue=(None, None))
+        lmsets = []
         for pair in pairs:
-            if pair[1] is not None:
+            match = Match(
+                p1=pair[0][0].final_match.winner,
+                p2=pair[1][0].final_match.winner,
+                p1_parent=pair[0][1],
+                p2_parent=pair[1][1],
+                iteration=level,
+                match_data=[]
+            )
+            if pair[0][0] is not None and pair[1][0] is not None:
                 winner, data = run_matches_submission(
-                    current_app, pair[0].final_match.winner.submission,
-                    pair[1].final_match.winner.submission
+                    current_app,
+                    pair[0][0].final_match.winner.submission,
+                    pair[1][0].final_match.winner.submission
                 )
-                if winner:
-                    msets.append(pair[winner])
-                    wm = pair[winner]
+                if winner is not None:
+                    lmsets.append((pair[winner][0], match))
+                    wm = pair[winner][0].final_match.winner
                 else:
+                    lmsets.append((None, match))
                     wm = None
-                match = Match(
-                    p1=pair[0].final_match.winner,
-                    p2=pair[1].final_match.winner,
-                    p1_parent=matches.get(pair[0].id),
-                    p2_parent=matches.get(pair[1].id),
-                    winner=wm,
-                    iteration=level,
-                    match_data=data
-                )
-                matches[pair[0].id] = match
-                matches[pair[1].id] = match
-                session.add(match)
+                match.match_data = data
             else:
-                match = pair[0].final_match
-                msets.append(pair[0])
+                if pair[0][0]:
+                    lmsets.append((pair[0][0], match))
+                    wm = pair[0][0].final_match.winner
+                elif pair[1][0]:
+                    lmsets.append((pair[1][0], match))
+                    wm = pair[1][0].final_match.winner
+                else:
+                    lmsets.append((None, match))
+                    wm = None
+            match.winner = wm
+            session.add(match)
         level += 1
-        if len(msets) <= 1:
-            break
+        msets.clear()
+        msets.extend(lmsets)
     if len(msets) == 1 and match:
         tournament.final_match = match
         session.commit()
@@ -370,8 +385,7 @@ def finalize_matches(tournament_id: uuid.UUID):
     return redirect(url_for('.tournament', tournament_id=tournament.id))
 
 
-@moderator_only
-@ep.route('/admin/match_sets/<uuid:set_id>/clear')
+@admin.route('/match_sets/<uuid:set_id>/clear')
 def clear_matches(set_id: uuid.UUID):
     mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
     if not mset.tournament.final_match:
@@ -390,10 +404,13 @@ def clear_matches(set_id: uuid.UUID):
 def create_web_app(app: App) -> Flask:
     wsgi = Flask(__name__)
     wsgi.register_blueprint(ep)
+    wsgi.register_blueprint(admin)
     wsgi.teardown_request(close_session)
     wsgi.config['APP'] = app
     wsgi.secret_key = app.secret_key
     login_manager.init_app(wsgi)
     cdn.init_app(wsgi)
+    if app.sentry_dsn:
+        Sentry(wsgi, dsn=app.sentry_dsn)
     return wsgi
 

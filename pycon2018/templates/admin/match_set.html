@@ -14,11 +14,24 @@
       {% for match in tree[i] %}
         <li>
           <p>
-            <a href="{{ url_for('.submission', submission_id=match.p1.submission.id) }}">@{{ match.p1.submission.user.display_name }}</a>
+            {% if match.p1 %}
+              <a href="{{ url_for('.submission', submission_id=match.p1.submission.id) }}">@{{ match.p1.submission.user.display_name }}</a>
+            {% else %}
+              -
+            {% endif %}
             VS
-            <a href="{{ url_for('.submission', submission_id=match.p2.submission.id) }}">@{{ match.p2.submission.user.display_name }}</a>
+            {% if match.p2 %}
+              <a href="{{ url_for('.submission', submission_id=match.p2.submission.id) }}">@{{ match.p2.submission.user.display_name }}</a>
+            {% else %}
+              -
+            {% endif %}
             <br />
-            <a href="{{ url_for('.show_match', match_id=match.id) }}">경기 결과</a> :
+            {% if match.match_data %}
+              <a href="{{ url_for('ep.show_match', match_id=match.id) }}">경기 결과</a>
+            {% else %}
+              경기 결과
+            {% endif %}
+            :
             {% if match.winner %}
               @{{ match.winner.submission.user.display_name }} 승리
             {% else %}
