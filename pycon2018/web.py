@@ -21,7 +21,8 @@ from werkzeug.urls import url_decode
 from .app import App
 from .entities import (Match, Submission, Tournament, TournamentMatchSet,
                        TournamentMatchSetItem, User)
-from .game import run_matches, run_matches_submission
+from .game import (Action, FixedAgent, RandomAgent, ScriptException,
+                   run_matches, run_matches_submission)
 from .util import build_match_tree, ngroup
 
 
@@ -174,6 +175,46 @@ def disclose_match(match_id: uuid.UUID):
     match.disclosed = True
     session.commit()
     return jsonify(result='success')
+
+
+@ep.route('/test', methods=['POST'])
+@login_required
+def test_submission():
+    type = request.form.get('type', 'random')
+    if type == 'random':
+        agent = RandomAgent()
+    else:
+        agent = FixedAgent(Action(type))
+    file = request.files.get('script')
+    if file is None:
+        return jsonify(result='failed', error='file_not_uploaded')
+    with tempfile.NamedTemporaryFile() as tf:
+        file.save(tf)
+        tf.flush()
+        try:
+            winner, data = run_matches(
+                current_app, tf.name, agent, True
+            )
+        except ScriptException as e:
+            return jsonify(result='failed', error='script_error',
+                           output=e.output)
+    if winner == 0:
+        winner = 'p1'
+    elif winner == 1:
+        winner = 'p2'
+    match = {
+        'p1': {
+            'display_name': current_user.display_name,
+            'avatar': current_user.avatar
+        },
+        'p2': {
+            'display_name': 'D0D0B0T',
+            'avatar': None
+        },
+        'winner': winner,
+        'data': data
+    }
+    return jsonify(result='success', match=match)
     
 
 @ep.route('/tournaments/<uuid:tournament_id>/submission', methods=['POST'])
@@ -183,18 +224,22 @@ def submit(tournament_id: uuid.UUID):
     assert tournament.active
     file = request.files.get('script')
     if file is None:
-        flash('파일을 확인해 주세요.')
+        flash({'message': '파일을 확인해 주세요.'})
         return redirect(url_for('.index'))
     with tempfile.NamedTemporaryFile() as tf:
         file.save(tf)
         tf.flush()
         try:
-            winner, data = run_matches(current_app, tf.name, None)
+            winner, data = run_matches(
+                current_app, tf.name,
+                FixedAgent(Action.idle)
+            )
             if winner != 0:
-                flash('테스트에 통과하지 못했습니다.')
+                flash({'message': '테스트에 통과하지 못했습니다.'})
                 return redirect(url_for('.index'))
-        except:
-            flash('코드에 오류가 있습니다.')
+        except ScriptException as e:
+            flash({'message': '코드에 오류가 있습니다.',
+                   'output': e.output})
             return redirect(url_for('.index'))
         tf.seek(0)
         data = tf.read().decode('utf-8')

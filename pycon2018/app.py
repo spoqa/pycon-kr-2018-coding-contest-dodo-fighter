@@ -66,6 +66,14 @@ class App(Configuration):
         'game.evaluator_path', str, default='script_runner'
     )
 
+    game_p1_initial_position = config_property(
+        'game.p1_initial_position', int, default=0
+    )
+
+    game_p2_initial_position = config_property(
+        'game.p2_initial_position', int, default=3
+    )
+
     sentry_dsn = config_property(
         'sentry.dsn', str, default=None
     )
