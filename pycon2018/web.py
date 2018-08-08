@@ -102,10 +102,32 @@ def index():
     )
 
 
+@ep.route('/playground')
+@login_required
+def playground():
+    return render_template('playground.html')
+
+
 @ep.route('/tournaments/<uuid:tournament_id>')
 def game(tournament_id: uuid.UUID):
     tournament = session.query(Tournament).filter_by(id=tournament_id).one()
-    return render_template('game.html', tournament=tournament)
+    if not tournament.final_match:
+        abort(404)
+    return render_template('game.html',
+                           final_match=tournament.final_match,
+                           tree=build_match_tree(tournament.final_match),
+                           range=range)
+
+
+@ep.route('/match_sets/<uuid:set_id>')
+def game_subtournament(set_id: uuid.UUID):
+    mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
+    if not mset.final_match:
+        abort(404)
+    return render_template('game.html',
+                           final_match=mset.final_match,
+                           tree=build_match_tree(mset.final_match),
+                           range=range)
 
 
 @ep.route('/oauth/authorized')
@@ -186,10 +208,14 @@ def test_submission():
     else:
         agent = FixedAgent(Action(type))
     file = request.files.get('script')
-    if file is None:
-        return jsonify(result='failed', error='file_not_uploaded')
+    text = request.form.get('script_text')
+    if file is None and text is None:
+        return jsonify(result='failed', error='no_input')
     with tempfile.NamedTemporaryFile() as tf:
-        file.save(tf)
+        if file:
+            file.save(tf)
+        else:
+            tf.write(text.encode('utf-8'))
         tf.flush()
         try:
             winner, data = run_matches(
@@ -331,7 +357,6 @@ def create_matches(set_id: uuid.UUID):
         pairs = ngroup(2, subs, fillvalue=(None, None))
         nsubs = []
         for pair in pairs:
-            print(pair)
             match = Match(
                 p1=pair[0][0],
                 p2=pair[1][0],

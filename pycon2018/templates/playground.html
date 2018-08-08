@@ -1,0 +1,57 @@
+{% extends "backbone_game.html" %}
+
+{% block body %}
+  
+  <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
+
+  <form id="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
+    파일 선택: <input type="file" name="script" /><br />
+    또는 스크립트 직접 입력: <br />
+    <textarea name="script_text" style="width: 600px; height: 400px;"></textarea><br />
+    상대 동작: <select name="type">
+      <option value="random">랜덤</option>
+      <option value="idle">가만히</option>
+      <option value="forward">앞으로</option>
+      <option value="backward">뒤로</option>
+      <option value="punch">펀치</option>
+      <option value="kick">킥</option>
+      <option value="crouch">숙이기</option>
+      <option value="jump">점프</option>
+      <option value="guard">방어</option>
+    </select><br />
+    <input type="submit" />
+  </form>
+
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('#submission').on('submit', function(event) {
+        if (!$('input[name=script]').val() && !$('textarea[name=script_text]').val()) {
+          alert('코드를 입력해 주세요.');
+          return false;
+        } else if ($('input[name=script]').val() && $('textarea[name=script_text]').val()) {
+          alert('파일 첨부와 코드 입력을 동시에 할 수 없습니다.');
+          return false;
+        }
+
+        var formdata = new FormData($('#submission')[0]);
+        $.ajax({
+          url: "{{ url_for('.test_submission') }}",
+          data: formdata,
+          processData: false,
+          contentType: false,
+          type: 'POST',
+          success: function(data) {
+            if (data.result == 'success') {
+              gameInstance.SendMessage('Controller', 'StartMatchByJson', JSON.stringify(data.match));
+            } else {
+              alert('오류가 발생했습니다: ' + data.error + '\n' + data.output);
+            }
+          }
+        });
+        
+        return false;
+      });
+    });
+  </script>
+
+{% endblock %}

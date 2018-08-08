@@ -2,6 +2,11 @@
 
 {% block body %}
   <h1>도도-파이터</h1>
+
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('.playground') }}">테스트해보기</a>
+  {% endif %}
+
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <h2>에러</h2>

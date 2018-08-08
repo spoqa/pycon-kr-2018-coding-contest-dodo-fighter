@@ -121,18 +121,18 @@ class Match(Base):
                       uselist=False, lazy='joined')
 
     p1_parent_id = Column(UUIDType, ForeignKey('match.id'))
-    p1_children = relationship('Match', foreign_keys=[p1_parent_id],
-                               backref=backref('p1_parent', remote_side=[id]),
-                               uselist=False)
+    p1_child = relationship('Match', foreign_keys=[p1_parent_id],
+                            backref=backref('p1_parent', remote_side=[id]),
+                            uselist=False)
 
     p2_id = Column(UUIDType, ForeignKey(TournamentMatchSetItem.id))
     p2 = relationship(TournamentMatchSetItem, foreign_keys=[p2_id],
                       uselist=False, lazy='joined')
 
     p2_parent_id = Column(UUIDType, ForeignKey('match.id'))
-    p2_children = relationship('Match', foreign_keys=[p2_parent_id],
-                               backref=backref('p2_parent', remote_side=[id]),
-                               uselist=False)
+    p2_child = relationship('Match', foreign_keys=[p2_parent_id],
+                            backref=backref('p2_parent', remote_side=[id]),
+                            uselist=False)
 
     winner_id = Column(UUIDType, ForeignKey(TournamentMatchSetItem.id))
     winner = relationship(TournamentMatchSetItem, foreign_keys=[winner_id],

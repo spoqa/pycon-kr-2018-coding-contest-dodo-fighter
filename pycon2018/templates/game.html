@@ -1,0 +1,28 @@
+{% extends "backbone_game.html" %}
+
+{% block body %}
+
+  <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
+
+  <ul>
+    {% for i in range(final_match.iteration + 1) %}
+      {% if i in tree %}
+        <li> {{ i + 1 }}차전:
+          {% for match in tree[i] %}
+            {% if match.p1 and match.p2 %}
+              <a href="javascript:gameInstance.SendMessage('Controller', 'StartMatchByUuid', '{{ match.id }}')">
+                @{{ match.p1.submission.user.display_name }} VS @{{ match.p2.submission.user.display_name }}
+              </a>
+            {% else %}
+              {% if match.p1 %} @{{ match.p1.submission.user.display_name }}{% else %}-{% endif %}
+              VS
+              {% if match.p2 %} @{{ match.p2.submission.user.display_name }}{% else %}-{% endif %}
+            {% endif %}
+            |
+          {% endfor %}
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+{% endblock %}
