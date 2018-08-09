@@ -2,10 +2,15 @@
 
 import _ast
 import ast
+import os
+import signal
 import sys
+import time
+import threading
 
 
 PERMITTED_MODULES = ['json', 'math', 'random', 'sys']
+KEEP_ALIVE_TIME = 3
 
 
 class ProhibitedModuleException(Exception):
@@ -29,10 +34,18 @@ def traverse_node(node):
             traverse_node(n)
 
 
+def oot_killer():
+    time.sleep(KEEP_ALIVE_TIME)
+    os.kill(os.getpid(), signal.SIGTERM)
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         sys.stderr.write(f'Usage: {sys.argv[0]} [FILENAME]\n')
         sys.exit(1)
     root = ast.parse(open(sys.argv[1]).read())
     traverse_node(root)
-    exec(compile(root, filename='<ast>', mode='exec'))
+    t = threading.Thread(target=oot_killer)
+    t.start()
+    exec(compile(root, filename='<ast>', mode='exec'), {})
+    t.terminate()
