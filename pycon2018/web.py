@@ -78,6 +78,10 @@ def inject_current_tournament():
 
 
 @ep.route('/')
+def teaser():
+    return render_template('teaser.html')
+
+
 def index():
     if g.current_tournament:
         if current_user.is_authenticated:
