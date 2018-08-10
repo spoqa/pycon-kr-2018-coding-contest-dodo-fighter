@@ -46,6 +46,7 @@ if __name__ == '__main__':
     root = ast.parse(open(sys.argv[1]).read())
     traverse_node(root)
     t = threading.Thread(target=oot_killer)
+    t.daemon = True
     t.start()
     exec(compile(root, filename='<ast>', mode='exec'), {})
-    t.terminate()
+
