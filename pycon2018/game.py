@@ -335,6 +335,8 @@ def run_matches(app: App,
 def run_matches_submission(app: App, p1: Submission, p2: Submission):
     with tempfile.NamedTemporaryFile() as tf1, \
          tempfile.NamedTemporaryFile() as tf2:
+        make_tempfile_public(tf1)
+        make_tempfile_public(tf2)
         tf1.write(p1.code.encode('utf-8'))
         tf1.flush()
         tf2.write(p2.code.encode('utf-8'))

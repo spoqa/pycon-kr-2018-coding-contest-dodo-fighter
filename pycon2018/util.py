@@ -1,4 +1,7 @@
 import itertools
+import os
+import stat
+import tempfile
 import typing
 
 from .entities import Match
@@ -22,3 +25,9 @@ def build_match_tree(terminal: Match) -> typing.Mapping[int, typing.Any]:
             traverse(node.p2_parent)
     traverse(terminal)
     return result
+
+
+def make_tempfile_public(temp: tempfile.TemporaryFile):
+    os.chmod(
+        temp.name, stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH
+    )

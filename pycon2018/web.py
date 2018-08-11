@@ -23,7 +23,7 @@ from .entities import (Match, Submission, Tournament, TournamentMatchSet,
                        TournamentMatchSetItem, User)
 from .game import (Action, FixedAgent, RandomAgent, ScriptException,
                    run_matches, run_matches_submission)
-from .util import build_match_tree, ngroup
+from .util import build_match_tree, make_tempfile_public, ngroup
 
 
 current_app = LocalProxy(lambda: current_flask_app.config['APP'])
@@ -212,6 +212,7 @@ def test_submission():
     if file is None and text is None:
         return jsonify(result='failed', error='no_input')
     with tempfile.NamedTemporaryFile() as tf:
+        make_tempfile_public(tf)
         if file:
             file.save(tf)
         else:
@@ -253,6 +254,7 @@ def submit(tournament_id: uuid.UUID):
         flash({'message': '파일을 확인해 주세요.'})
         return redirect(url_for('.index'))
     with tempfile.NamedTemporaryFile() as tf:
+        make_tempfile_public(tf)
         file.save(tf)
         tf.flush()
         try:
