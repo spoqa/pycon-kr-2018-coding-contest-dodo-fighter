@@ -10,6 +10,7 @@ from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
 from raven.contrib.flask import Sentry
 from requests import get, post
+from sassutils.wsgi import SassMiddleware
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import or_
@@ -483,6 +484,9 @@ def create_web_app(app: App) -> Flask:
     wsgi.teardown_request(close_session)
     wsgi.config['APP'] = app
     wsgi.secret_key = app.secret_key
+    wsgi.wsgi_app = SassMiddleware(wsgi.wsgi_app, {
+        'pycon2018': ('static/css', 'static/css', 'static/css')
+    })
     login_manager.init_app(wsgi)
     cdn.init_app(wsgi)
     if app.sentry_dsn:
