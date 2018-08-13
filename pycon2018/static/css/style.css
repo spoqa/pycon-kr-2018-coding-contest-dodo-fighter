@@ -1,0 +1,182 @@
+@import url(//spoqa.github.io/spoqa-han-sans/css/SpoqaHanSans-kr.css);
+
+
+/* Firefox old*/
+@-moz-keyframes blink {
+    0% {
+        opacity:1;
+    }
+    75% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+} 
+
+@-webkit-keyframes blink {
+    0% {
+        opacity:1;
+    }
+    75% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+}
+/* IE */
+@-ms-keyframes blink {
+    0% {
+        opacity:1;
+    }
+    75% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+} 
+/* Opera and prob css3 final iteration */
+@keyframes blink {
+    0% {
+        opacity:1;
+    }
+    75% {
+        opacity:0;
+    }
+    100% {
+        opacity:1;
+    }
+} 
+
+* {
+  font-family: 'Spoqa Han Sans', 'Sans-serif';
+  box-sizing: border-box;
+
+  word-break: break-all;
+}
+
+body {
+  background-color: #af9684;
+  margin: 0;
+  padding: 0;
+
+  width: 100vw;
+  padding-top: 100px;
+
+  background-image: url(/static/images/bg/title-bg.png);
+  background-repeat: no-repeat;
+  background-size: cover;
+
+  overflow-x: hidden;
+}
+
+@media 
+  (-webkit-min-device-pixel-ratio: 2), 
+  (min-resolution: 2dppx) { 
+  body {
+    background-image: url(/static/images/bg/title-bg@2x.png);
+  }
+}
+
+@media 
+  (-webkit-min-device-pixel-ratio: 3), 
+  (min-resolution: 3dppx) { 
+  body {
+    background-image: url(/static/images/bg/title-bg@3x.png);
+  }
+}
+
+.dodofighter-logo {
+  width: 900px;
+  object-fit: contain;
+  margin: 0 auto 0 auto;
+  display: block;
+}
+
+.hero-copy {
+  width: 600px;
+
+  display: block;
+  margin: 30px auto 30px auto;
+
+  -moz-animation: blink normal 1s infinite step-end; /* Firefox */
+  -webkit-animation: blink normal 1s infinite step-end; /* Webkit */
+  -ms-animation: blink normal 1s infinite step-end; /* IE */
+  animation: blink normal 1s infinite step-end; /* Opera and prob css3 final iteration */
+}
+
+
+.instruction {
+  width: 700px;
+  border-radius: 10px;
+  background-color: rgba(51, 51, 51, 0.9);
+
+  padding: 36px;
+  margin: 0 auto 30px auto;
+
+  font-size: 18px;
+  font-weight: normal;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.instruction .instruction-title {
+  font-size: 28px;
+  font-weight: bold;
+  font-style: normal;
+  letter-spacing: normal;
+}
+
+.instruction .instruction-button {
+  width: 209px;
+  height: 54px;
+  border: 0;
+  border-radius: 4px;
+  background-color: #4c80f1;
+  box-shadow: 0 1px 2px 0 rgba(76, 128, 241, 0.5);
+
+  font-size: 15px;
+  font-weight: bold;
+  font-style: normal;
+  font-stretch: normal;
+  line-height: 1;
+  letter-spacing: normal;
+  text-align: center;
+  color: #ffffff;
+}
+
+
+@media screen and (max-width: 1024px) {
+  
+  body {
+    height: 30vh;
+
+    padding-top: 8vh;
+  }
+
+  .dodofighter-logo {
+    width: 80vw;
+  }
+
+  .hero-copy {
+    width: 80vw;
+    margin-bottom: 10vh;
+  }
+
+  .instruction {
+    width: 90vw;
+    padding: 2vh;
+
+    font-size: .75em;
+  }
+
+  .instruction .instruction-title {
+    font-size: 1.25em;
+  }
+}

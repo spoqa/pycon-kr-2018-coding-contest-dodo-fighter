@@ -15,7 +15,6 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import or_
 from sqlalchemy.sql.functions import now
 from werkzeug.local import LocalProxy
-from werkzeug.routing import BaseConverter
 from werkzeug.urls import url_decode
 
 from .app import App
@@ -79,6 +78,10 @@ def inject_current_tournament():
 
 
 @ep.route('/')
+def teaser():
+    return render_template('teaser.html')
+
+
 def index():
     if g.current_tournament:
         if current_user.is_authenticated:
@@ -242,7 +245,7 @@ def test_submission():
         'data': data
     }
     return jsonify(result='success', match=match)
-    
+
 
 @ep.route('/tournaments/<uuid:tournament_id>/submission', methods=['POST'])
 @login_required
@@ -299,7 +302,7 @@ def tournament(tournament_id: uuid.UUID):
     if tournament.final_match:
         tree = build_match_tree(tournament.final_match)
     else:
-        tree =None
+        tree = None
     return render_template('admin/tournament.html', tournament=tournament,
                            submissions_without_match=submissions_without_match,
                            tree=tree, enumerate=enumerate, range=range)
@@ -485,4 +488,3 @@ def create_web_app(app: App) -> Flask:
     if app.sentry_dsn:
         Sentry(wsgi, dsn=app.sentry_dsn)
     return wsgi
-
