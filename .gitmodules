@@ -1,0 +1,3 @@
+[submodule "pycon2018/static/css/dooboo"]
+	path = pycon2018/static/css/dooboo
+	url = git@github.com:spoqa/dooboo.git
