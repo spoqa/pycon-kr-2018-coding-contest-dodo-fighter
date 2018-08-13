@@ -1,0 +1,25 @@
+$service: spoqa;
+$image-base-path: "";
+$w: 1024px;
+
+@import "dooboo/_dooboo-common";
+
+$topnav-collapse-width: $w;
+$mo-image-base-path: "/static/dooboo/mo/";
+$cover-height: 256px;
+$cover-image: 512px;
+$cover-image-size: 256px;
+$cover-background-color: $mainblue-0;
+
+@import "dooboo/_dooboo-default";
+
+.content {
+  width: $w;
+  margin: 0 auto;
+}
+
+.no-visibility-textarea {
+  border: none;
+  outline: none;
+  resize: none;
+}

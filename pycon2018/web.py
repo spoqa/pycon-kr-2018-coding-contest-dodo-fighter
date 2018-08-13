@@ -83,6 +83,7 @@ def teaser():
     return render_template('teaser.html')
 
 
+@ep.route('/dashboard')
 def index():
     if g.current_tournament:
         if current_user.is_authenticated:
