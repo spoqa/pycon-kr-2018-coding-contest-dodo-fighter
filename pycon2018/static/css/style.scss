@@ -1,10 +1,9 @@
 $service: spoqa;
 $image-base-path: "";
-$w: 1024px;
 
 @import "dooboo/_dooboo-common";
 
-$topnav-collapse-width: $w;
+$topnav-collapse-width: 870px;
 $mo-image-base-path: "/static/dooboo/mo/";
 $cover-height: 256px;
 $cover-image: 512px;
@@ -13,13 +12,277 @@ $cover-background-color: $mainblue-0;
 
 @import "dooboo/_dooboo-default";
 
-.content {
-  width: $w;
-  margin: 0 auto;
-}
 
-.no-visibility-textarea {
-  border: none;
-  outline: none;
-  resize: none;
+body {
+  .container-fluid {
+    padding: 0;
+    max-width: 1280px;
+    background-image: url(/static/images/dashboard-bg/dodo-fighter-bg-characters.png);
+    background-repeat: no-repeat;
+    background-size: auto 600px;
+    position: relative;
+
+    @media
+    (-webkit-min-device-pixel-ratio: 2),
+    (min-resolution: 2dppx) {
+      background-image: url(/static/images/dashboard-bg/dodo-fighter-bg-characters@2x.png);
+    }
+
+    @media
+    (-webkit-min-device-pixel-ratio: 3),
+    (min-resolution: 3dppx) {
+      background-image: url(/static/images/dashboard-bg/dodo-fighter-bg-characters@3x.png);
+    }
+    .no-visibility-textarea {
+      border: none;
+      outline: none;
+      resize: none;
+    }
+
+    .brand-logo-wrap {
+      .brand-logo {
+        background: url(/static/images/logo/dodofighter-logo.png);
+        background-size: contain;
+        background-repeat: no-repeat;
+
+        min-width: 198px;
+        min-height: 44px;
+      }
+    }
+
+    .topnav {
+      padding-left: 7%;
+      padding-right: 7%;
+      position: absolute;
+      z-index: 9;
+      width: 100%;
+
+      .topnav-menu {
+        font-size: 16px;
+        font-weight: bold;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: normal;
+        letter-spacing: normal;
+        color: #eaeeef;
+      }
+
+      .github-profile {
+        font-family: SpoqaHanSans;
+        font-size: 16px;
+        font-weight: bold;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        text-align: right;
+        color: #363a3c;
+        padding: 24.5px 20px;
+      }
+
+      .login-menu {
+        color: #363a3c !important;
+
+        &:before {
+          content: "";
+          background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMyIgaGVpZ2h0PSIyMiIgdmlld0JveD0iMCAwIDIzIDIyIj4KICAgIDxwYXRoIGZpbGw9IiMzNjNBM0MiIGZpbGwtcnVsZT0iZXZlbm9kZCIgZD0iTTExLjUgMEM1LjE1IDAgMCA1LjA1IDAgMTEuMjhjMCA0Ljk4MiAzLjI5NSA5LjIwOSA3Ljg2NSAxMC43LjU3NS4xMDQuNzg1LS4yNDQuNzg1LS41NDMgMC0uMjY4LS4wMS0uOTc3LS4wMTUtMS45MTgtMy4yLjY4LTMuODc0LTEuNTEzLTMuODc0LTEuNTEzLS41MjMtMS4zMDMtMS4yNzctMS42NDktMS4yNzctMS42NDktMS4wNDQtLjcuMDc5LS42ODYuMDc5LS42ODYgMS4xNTQuMDggMS43NjEgMS4xNjMgMS43NjEgMS4xNjMgMS4wMjYgMS43MjMgMi42OTEgMS4yMjUgMy4zNDcuOTM3LjEwNS0uNzI5LjQwMS0xLjIyNi43My0xLjUwOC0yLjU1My0uMjg0LTUuMjM4LTEuMjUyLTUuMjM4LTUuNTc0IDAtMS4yMzEuNDQ4LTIuMjM4IDEuMTg0LTMuMDI3LS4xMTktLjI4NS0uNTEzLTEuNDMxLjExMi0yLjk4NCAwIDAgLjk2Ni0uMzA0IDMuMTYzIDEuMTU2LjkxNy0uMjUgMS45MDEtLjM3NSAyLjg3OS0uMzguOTc2LjAwNSAxLjk2LjEzIDIuODc5LjM4IDIuMTk1LTEuNDYgMy4xNTktMS4xNTYgMy4xNTktMS4xNTYuNjI3IDEuNTUzLjIzMyAyLjcuMTE0IDIuOTg0LjczNy43OSAxLjE4MyAxLjc5NiAxLjE4MyAzLjAyNyAwIDQuMzMzLTIuNjkgNS4yODYtNS4yNTEgNS41NjUuNDEzLjM0OC43OCAxLjAzNy43OCAyLjA4OSAwIDEuNTA3LS4wMTQgMi43MjQtLjAxNCAzLjA5NCAwIC4zMDEuMjA3LjY1Mi43OTEuNTQyQzE5LjcwNyAyMC40ODQgMjMgMTYuMjYgMjMgMTEuMjggMjMgNS4wNSAxNy44NSAwIDExLjUgMCIvPgo8L3N2Zz4K);
+          width: 22px;
+          height: 22px;
+          display: inline-block;
+          vertical-align: middle;
+          margin-right: 4px;
+        }
+      }
+    }
+
+    .section {
+      width: 100%;
+      padding: 0;
+    }
+
+    .section-logo {
+      background-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 600px;
+      margin-bottom: 0;
+
+      .dodofighter-logo-wrap {
+        .dodofighter-logo {
+          width: 600px;
+          height: 133px;
+        }
+
+        .caption {
+          margin-top: 10px;
+
+          font-size: 22px;
+          font-weight: bold;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1.36;
+          letter-spacing: normal;
+          text-align: center;
+          color: #363a3c;
+        }
+        .tournament-link {
+          width: 374px;
+          height: 34px;
+          background-image: url(/static/images/img-cta-normal.svg);
+          display: block;
+          margin: 40px auto 0 auto;
+
+          &:hover {
+            background-image: url(/static/images/img-cta-hover.svg);
+          }
+        }
+      }
+    }
+
+    .section-overview {
+      height: 380px;
+      background-color: #eff2f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+
+      .overview {
+        width: 600px;
+        height: 180px;
+        font-family: SpoqaHanSans;
+        font-size: 22px;
+        font-weight: bold;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1.64;
+        letter-spacing: normal;
+        text-align: center;
+        color: #363a3c;
+      }
+    }
+
+    .section-tournament {
+      padding: 4%;
+      text-align: center;
+
+      .my-info {
+        margin: 60px auto 40px auto;
+        padding: 40px;
+        width: 690px;
+        height: 260px;
+        border-radius: 8px;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        border: solid 1px #ced3d6;
+
+        display: flex;
+        flex-flow: column wrap;
+
+        .avatar {
+          width: 160px;
+          height: 160px;
+        }
+
+        .display-name {
+          width: 70%;
+          height: 33%;
+          text-align: left;
+          font-size: 28px;
+          font-weight: bold;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1;
+          letter-spacing: normal;
+          color: #363a3c;
+          padding-left: 16px;
+        }
+
+        .code-form {
+          width: 400px;
+
+          .script {
+            width: 100%;
+            margin-bottom: 8px;
+          }
+          .code-submit {
+            width: 100%;
+          }
+        }
+      }
+
+      .login-form {
+        margin: 60px auto 40px auto;
+        padding: 40px;
+        width: 690px;
+        height: 180px;
+        border-radius: 8px;
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        border: solid 1px #ced3d6;
+
+        .instruction {
+          font-size: 18px;
+          font-weight: normal;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1;
+          letter-spacing: normal;
+          color: #333333;
+          margin-bottom: 28px;
+        }
+
+        .login-button {
+          width: 610px;
+          height: 54px;
+          border-radius: 4px;
+          background-color: #363a3c;
+          box-shadow: 0 1px 2px 0 #363a3c;
+          font-size: 16px;
+          font-weight: bold;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1;
+          letter-spacing: normal;
+          color: #ffffff;
+        }
+      }
+      .result-button {
+        width: 296px;
+        height: 54px;
+      }
+    }
+
+    .section-rule {
+      background-color: #363a3c;
+      padding-top: 4%;
+
+      font-style: normal;
+      font-stretch: normal;
+      line-height: 1;
+      letter-spacing: normal;
+      text-align: center;
+      color: #ffffff;
+
+      .section-title {
+        font-size: 44px;
+        font-weight: bold;
+      }
+
+      .instruction {
+        text-align: left;
+        width: 727px;
+        font-size: 16px;
+        line-height: 1.94;
+        letter-spacing: -0.5px;
+        margin-top: 46px;
+
+        code {
+          color: #363a3c;
+        }
+      }
+    }
+  }
 }
