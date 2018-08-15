@@ -2,9 +2,23 @@
 
 {% block body %}
 
+  <script type="text/javascript">
+    $(document).ready(function() {
+      $('#matchList').css('display', 'none');
+    });
+    
+    document.unityPlayerReady = function() {
+      $('#matchList').css('display', 'block');
+    }
+
+    document.discloseMatch = function(uuid) {
+      console.log('disclose match: ' + uuid);
+    }
+  </script>
+
   <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
 
-  <ul>
+  <ul id="matchList">
     {% for i in range(final_match.iteration + 1) %}
       {% if i in tree %}
         <li> {{ i + 1 }}차전:

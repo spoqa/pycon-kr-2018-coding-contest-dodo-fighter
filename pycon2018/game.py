@@ -8,6 +8,7 @@ import typing
 
 from .app import App
 from .entities import Submission
+from .util import make_tempfile_public
 
 
 class Action(enum.Enum):
