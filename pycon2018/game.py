@@ -25,9 +25,10 @@ class Action(enum.Enum):
 class Agent:
 
     def __init__(self):
-        self.reset_with(0)
+        self.reset_with(0, 0)
 
-    def reset_with(self, position: int):
+    def reset_with(self, player_number: int, position: int):
+        self.player_number = player_number
         self.initial_position = position
         self.reset()
 
@@ -49,10 +50,15 @@ class Agent:
             'time_left': time_left,
             'health': self.health,
             'opponent_health': opponent.health,
-            'opponent_action': str(opponent.last_action),
+            'opponent_action': (
+                opponent.last_action.value if opponent.last_action else None
+            ),
             'given_damage': self.last_inflicted_damage,
             'taken_damage': opponent.last_inflicted_damage,
-            'match_records': match_records,
+            'match_records': [
+                x == self.player_number if x is not None else None
+                for x in match_records
+            ],
         }
 
     def get_action(self, opponent, match_records: typing.Sequence[str],
@@ -155,8 +161,8 @@ def evaluate(app: App, p1: Agent, p2: Agent,
     record = []
     time_left = app.game_round_time
 
-    p1.reset_with(app.game_p1_initial_position)
-    p2.reset_with(app.game_p2_initial_position)
+    p1.reset_with(0, app.game_p1_initial_position)
+    p2.reset_with(1, app.game_p2_initial_position)
 
     def put_record(action: str, **kwargs):
         record.append({
@@ -327,11 +333,9 @@ def run_matches(app: App,
         for i in range(app.game_round_count):
             winner, matchdata = evaluate(app, p1, p2, match_records, raise_)
             data.append(matchdata)
+            match_records.append(winner)
             if winner is not None:
                 wins[winner] += 1
-                match_records.append('p1' if winner == 0 else 'p2')
-            else:
-                match_records.append(None)
             max_wins_user = app.game_round_count - 1
             if wins[0] == max_wins_user or wins[1] == max_wins_user:
                 break
