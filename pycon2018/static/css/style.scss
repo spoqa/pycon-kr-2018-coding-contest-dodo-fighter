@@ -284,5 +284,78 @@ body {
         }
       }
     }
+
+    .section-playground {
+      background-color: #f8fafb;
+      padding-top: 60px;
+      padding-left: 85px;
+
+      .section-title {
+        font-size: 44px;
+        font-weight: bold;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1;
+        letter-spacing: -0.5px;
+        color: #363a3c;
+      }
+      .instruction {
+        font-size: 22px;
+        font-weight: normal;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1;
+        letter-spacing: -0.3px;
+        color: #363a3c;
+      }
+
+      .submission {
+        margin-top: 40px;
+        width: 1110px;
+        height: 876px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+        background-color: #ffffff;
+        border: solid 1px #ced3d6;
+
+        padding: 40px;
+
+        .subtitle {
+          font-size: 18px;
+          font-weight: bold;
+          font-style: normal;
+          font-stretch: normal;
+          line-height: 1;
+          letter-spacing: normal;
+          color: #878d91;
+          margin-bottom: 20px;
+        }
+        .script-text {
+          width: 1030px;
+          height: 400px;
+          border-radius: 4px;
+          background-color: #ffffff;
+          border: solid 1px #ced3d6;
+        }
+
+        .submit {
+          width: 300px;
+          display: block;
+        }
+      }
+      .copyright {
+        width: 228px;
+        height: 14px;
+        font-size: 14px;
+        font-weight: normal;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        text-align: center;
+        color: #696f74;
+        margin: 45px auto 45px auto;
+      }
+    }
   }
 }

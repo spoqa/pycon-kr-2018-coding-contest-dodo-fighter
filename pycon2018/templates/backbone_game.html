@@ -1,6 +1,7 @@
 {% extends "backbone.html" %}
 
 {% block head %}
+{{ super() }}
 <script src="{{ url_for('static', filename='build/UnityLoader.js') }}"></script>
 <script>
   var gameInstance = UnityLoader.instantiate("gameContainer", "{{ url_for('static', filename='build/web.json') }}");
