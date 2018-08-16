@@ -10,6 +10,7 @@
     <textarea name="script_text" style="width: 600px; height: 400px;"></textarea><br />
     상대 동작: <select name="type">
       <option value="random">랜덤</option>
+      <option value="clone">클론</option>
       <option value="idle">가만히</option>
       <option value="forward">앞으로</option>
       <option value="backward">뒤로</option>
@@ -23,7 +24,13 @@
   </form>
 
   <script type="text/javascript">
+    document.unityPlayerReady = function() {
+      $('#submission').css('display', 'block');
+    }
+    
     $(document).ready(function() {
+      $('#submission').css('display', 'none');
+        
       $('#submission').on('submit', function(event) {
         if (!$('input[name=script]').val() && !$('textarea[name=script_text]').val()) {
           alert('코드를 입력해 주세요.');

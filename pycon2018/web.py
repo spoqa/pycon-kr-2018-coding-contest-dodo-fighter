@@ -208,7 +208,9 @@ def disclose_match(match_id: uuid.UUID):
 @login_required
 def test_submission():
     type = request.form.get('type', 'random')
-    if type == 'random':
+    if type == 'clone':
+        pass
+    elif type == 'random':
         agent = RandomAgent()
     else:
         agent = FixedAgent(Action(type))
@@ -223,6 +225,17 @@ def test_submission():
         else:
             tf.write(text.encode('utf-8'))
         tf.flush()
+        if type == 'clone':
+            agent = tf.name
+            p2 = {
+                'display_name': current_user.display_name,
+                'avatar': current_user.avatar
+            }
+        else:
+            p2 = {
+                'display_name': 'D0D0B0T',
+                'avatar': url_for('static', filename='images/bot.png')
+            }
         try:
             winner, data = run_matches(
                 current_app, tf.name, agent, True
@@ -239,10 +252,7 @@ def test_submission():
             'display_name': current_user.display_name,
             'avatar': current_user.avatar
         },
-        'p2': {
-            'display_name': 'D0D0B0T',
-            'avatar': None
-        },
+        'p2': p2,
         'winner': winner,
         'data': data
     }

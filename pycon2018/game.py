@@ -42,7 +42,7 @@ class Agent:
     def distance(self, opponent):
         return abs(opponent.position - self.position)
 
-    def build_payload(self, opponent,
+    def build_payload(self, opponent, match_records: typing.Sequence[str],
                       time_left: int) -> typing.Mapping[str, typing.Any]:
         return {
             'distance': self.distance(opponent),
@@ -51,15 +51,18 @@ class Agent:
             'opponent_health': opponent.health,
             'opponent_action': str(opponent.last_action),
             'given_damage': self.last_inflicted_damage,
-            'taken_damage': opponent.last_inflicted_damage
+            'taken_damage': opponent.last_inflicted_damage,
+            'match_records': match_records,
         }
 
-    def get_action(self, opponent, time_left: int) -> Action:
-        action = self._get_action(opponent, time_left)
+    def get_action(self, opponent, match_records: typing.Sequence[str],
+                   time_left: int) -> Action:
+        action = self._get_action(opponent, match_records, time_left)
         self.previous_actions.append(action)
         return action
 
-    def _get_action(self, opponent, time_left: int) -> Action:
+    def _get_action(self, opponent, match_records: typing.Sequence[str],
+                    time_left: int) -> Action:
         raise NotImplementedError
 
     def damage_modifier(self, damage: int):
@@ -92,7 +95,8 @@ class FixedAgent(Agent):
         super(FixedAgent, self).__init__()
         self.action = action
 
-    def _get_action(self, opponent, time_left: int) -> Action:
+    def _get_action(self, opponent, match_records: typing.Sequence[str],
+                    time_left: int) -> Action:
         return self.action
 
 
@@ -100,7 +104,8 @@ class RandomAgent(Agent):
 
     choices = list(Action.__members__.values())
 
-    def _get_action(self, opponent, time_left: int) -> Action:
+    def _get_action(self, opponent, match_records: typing.Sequence[str],
+                    time_left: int) -> Action:
         return random.choice(self.choices)
 
 
@@ -120,8 +125,10 @@ class ExternalScriptAgent(Agent):
         super(ExternalScriptAgent, self).__init__()
         self.handle = handle
 
-    def _get_action(self, opponent, time_left: int) -> Action:
-        payload = json.dumps(self.build_payload(opponent, time_left))
+    def _get_action(self, opponent, match_records: typing.Sequence[str],
+                    time_left: int) -> Action:
+        payload = json.dumps(self.build_payload(opponent, match_records,
+                                                time_left))
         try:
             self.handle.stdin.write(payload.encode('utf-8'))
             self.handle.stdin.write(b'\n')
@@ -143,7 +150,8 @@ class ExternalScriptAgent(Agent):
         self.handle.terminate()
     
 
-def evaluate(app: App, p1: Agent, p2: Agent, raise_: bool=False):
+def evaluate(app: App, p1: Agent, p2: Agent,
+             match_records: typing.Sequence[str], raise_: bool=False):
     record = []
     time_left = app.game_round_time
 
@@ -157,9 +165,9 @@ def evaluate(app: App, p1: Agent, p2: Agent, raise_: bool=False):
             'p2': {'health': p2.health, 'position': p2.position},
             **kwargs})
     
-    while time_left > 0:
+    while time_left >= 0:
         try:
-            p1a = p1.get_action(p2, time_left)
+            p1a = p1.get_action(p2, match_records, time_left)
         except ScriptException:
             if raise_:
                 raise
@@ -167,7 +175,7 @@ def evaluate(app: App, p1: Agent, p2: Agent, raise_: bool=False):
         else:
             p1_failed = False
         try:
-            p2a = p2.get_action(p1, time_left)
+            p2a = p2.get_action(p1, match_records, time_left)
         except ScriptException:
             if raise_:
                 raise
@@ -279,6 +287,8 @@ def evaluate(app: App, p1: Agent, p2: Agent, raise_: bool=False):
         if p1_idle and p2_idle:
             put_record('idle')
         time_left -= 1
+    if time_left < 0:
+        time_left = 0
     if p1.health == p2.health:
         put_record('draw')
         return None, record
@@ -296,35 +306,35 @@ def run_matches(app: App,
                 raise_: bool=False):
     data = []
     wins = [0, 0]
-    for i in range(app.game_round_count):
-        if isinstance(p1, str):
-            p1p = subprocess.Popen([app.game_evaluator_path, p1],
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-            p1a = ExternalScriptAgent(p1p)
-        elif not isinstance(p1, Agent):
-            raise TypeError('p1 should be an agent or a string')
-        else:
-            p1a = p1
-        if isinstance(p2, str):
-            p2p = subprocess.Popen([app.game_evaluator_path, p2],
-                                   stdout=subprocess.PIPE,
-                                   stdin=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-            p2a = ExternalScriptAgent(p2p)
-        elif not isinstance(p2, Agent):
-            raise TypeError('p2 should be an agent or a string')
-        else:
-            p2a = p2
-        with p1a, p2a:
-            winner, matchdata = evaluate(app, p1a, p2a, raise_)
-        data.append(matchdata)
-        if winner is not None:
-            wins[winner] += 1
-        max_wins_user = app.game_round_count - 1
-        if wins[0] == max_wins_user or wins[1] == max_wins_user:
-            break
+    if isinstance(p1, str):
+        p1p = subprocess.Popen([app.game_evaluator_path, p1],
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+        p1 = ExternalScriptAgent(p1p)
+    elif not isinstance(p1, Agent):
+        raise TypeError('p1 should be an agent or a string')
+    if isinstance(p2, str):
+        p2p = subprocess.Popen([app.game_evaluator_path, p2],
+                               stdout=subprocess.PIPE,
+                               stdin=subprocess.PIPE,
+                               stderr=subprocess.PIPE)
+        p2 = ExternalScriptAgent(p2p)
+    elif not isinstance(p2, Agent):
+        raise TypeError('p2 should be an agent or a string')
+    with p1, p2:
+        match_records = []
+        for i in range(app.game_round_count):
+            winner, matchdata = evaluate(app, p1, p2, match_records, raise_)
+            data.append(matchdata)
+            if winner is not None:
+                wins[winner] += 1
+                match_records.append('p1' if winner == 0 else 'p2')
+            else:
+                match_records.append(None)
+            max_wins_user = app.game_round_count - 1
+            if wins[0] == max_wins_user or wins[1] == max_wins_user:
+                break
     if wins[0] == wins[1]:
         return None, data
     elif wins[0] > wins[1]:
