@@ -73,9 +73,9 @@ class Agent:
 
     def damage_modifier(self, damage: int):
         ua = set(self.previous_actions)
-        if len(ua) == 1:
+        if len(ua) == 1 and len(self.previous_actions) >= 3:
             action_diversity_multiplier = 1 / 3
-        elif len(ua) == 2:
+        elif len(ua) == 2 and len(self.previous_actions) >= 3:
             action_diversity_multiplier = 2 / 3
         else:
             action_diversity_multiplier = 1.0
@@ -219,12 +219,13 @@ def evaluate(app: App, p1: Agent, p2: Agent,
         elif p2a is Action.backward:
             if p2.position <= p2.initial_position + 2:
                 p2.position += 1
+            put_record('p2_backward')
             p2_idle = False
         if p1a is Action.punch:
             if p1.distance(p2) > 0:
                 put_record('p1_punch_unreachable')
             elif p2a is Action.crouch:
-                p2.guard_count += 1
+                p2.guard_count += 2
                 put_record('p1_punch_avoid')
             elif p2a is Action.guard:
                 damage = random.randrange(*app.game_hit_point_guard_range)
@@ -240,7 +241,7 @@ def evaluate(app: App, p1: Agent, p2: Agent,
             if p1.distance(p2) > 0:
                 put_record('p1_kick_unreachable')
             elif p2a is Action.jump:
-                p2.guard_count += 1
+                p2.guard_count += 2
                 put_record('p1_kick_avoid')
             elif p2a is Action.guard:
                 damage = random.randrange(*app.game_hit_point_guard_range)
@@ -259,7 +260,7 @@ def evaluate(app: App, p1: Agent, p2: Agent,
             if p2.distance(p1) > 0:
                 put_record('p2_punch_unreachable')
             elif p1a is Action.crouch:
-                p1.guard_count += 1
+                p1.guard_count += 2
                 put_record('p2_punch_avoid')
             elif p1a is Action.guard:
                 damage = random.randrange(*app.game_hit_point_guard_range)
@@ -275,7 +276,7 @@ def evaluate(app: App, p1: Agent, p2: Agent,
             if p2.distance(p1) > 0:
                 put_record('p2_kick_unreachable')
             elif p1a is Action.jump:
-                p1.guard_count += 1
+                p1.guard_count += 2
                 put_record('p2_kick_avoid')
             elif p1a is Action.guard:
                 damage = random.randrange(*app.game_hit_point_guard_range)
