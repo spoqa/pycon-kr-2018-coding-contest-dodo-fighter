@@ -12,7 +12,6 @@ $cover-background-color: $mainblue-0;
 
 @import "dooboo/_dooboo-default";
 
-
 body {
   .container-fluid {
     padding: 0;
@@ -78,6 +77,12 @@ body {
         text-align: right;
         color: #363a3c;
         padding: 24.5px 20px;
+
+        .log-out {
+            text-decoration: underline;
+            font-weight: normal;
+            color: inherit;
+        }
       }
 
       .login-menu {
@@ -172,7 +177,7 @@ body {
         margin: 60px auto 40px auto;
         padding: 40px;
         width: 690px;
-        height: 260px;
+        height: 242px;
         border-radius: 8px;
         box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.1);
         background-color: #ffffff;
@@ -202,6 +207,7 @@ body {
 
         .code-form {
           width: 400px;
+          margin-left: 16px;
 
           .script {
             width: 100%;
@@ -257,7 +263,8 @@ body {
 
     .section-rule {
       background-color: #363a3c;
-      padding-top: 4%;
+      padding-top: 90px;
+      padding-bottom: 90px;
 
       font-style: normal;
       font-stretch: normal;
@@ -283,12 +290,18 @@ body {
           color: #363a3c;
         }
       }
+
+      a {
+          color: inherit;
+          text-decoration: underline;
+      }
     }
 
     .section-playground {
       background-color: #f8fafb;
       padding-top: 60px;
       padding-left: 85px;
+      padding-bottom: 60px;
 
       .section-title {
         font-size: 44px;
@@ -336,16 +349,28 @@ body {
           border-radius: 4px;
           background-color: #ffffff;
           border: solid 1px #ced3d6;
+          font-family: monospace;
+          font-size: 18px;
+          line-height: 1;
+          letter-spacing: normal;
+        }
+
+        .script-type {
+          width: 158px;
         }
 
         .submit {
           width: 300px;
-          display: block;
+
+          button {
+            margin-top: 40px;
+            font-weight: bold;
+          }
         }
       }
     }
     .copyright {
-      width: 228px;
+      width: 500px;
       height: 14px;
       font-size: 14px;
       font-weight: normal;
@@ -355,7 +380,12 @@ body {
       letter-spacing: normal;
       text-align: center;
       color: #696f74;
-      margin: 45px auto 45px auto;
+      margin: 45px auto 142px auto;
     }
+  }
+
+  iframe {
+    border: none;
+    overflow: hidden;
   }
 }

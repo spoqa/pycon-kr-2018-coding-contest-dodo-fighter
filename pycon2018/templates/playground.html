@@ -6,17 +6,17 @@
 </section>
 <section class="section section-playground">
   <h2 class="section-title">코드 테스트하기</h2>
-  <p class="instruction">코드파일을 업로드하거나 스크립트를 직접 작성해 제출해주세요.</p>
+  <p class="instruction">코드파일을 업로드하거나 스크립트를 직접 작성해 제출해주세요. 작성 방법은 <a href="https://gist.github.com/segfault87/b9ccf17d682c5bcfa6a6b4bcae36856e">여기</a>를 참고해 주세요.</p>
   <form id="submission" class="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
 
     <h3 class="subtitle">코드 파일 업로드</h3>
-    <input type="file" name="script" />
+    <input class="form-control script-file" type="file" name="script" />
 
-    <h3 class="subtitle">또는 스크립트 직접 입력</h3>
-    <textarea class="script-text" name="script_text" style="width: 600px; height: 400px;"></textarea>
+    <h3 class="subtitle">또는 스크립트 직접 작성</h3>
+    <textarea class="script-text" name="script_text"></textarea>
 
     <h3 class="subtitle">상대 동작</h3>
-    <select name="type">
+    <select class="form-control script-type" name="type">
       <option value="random">랜덤</option>
       <option value="clone">클론</option>
       <option value="idle">가만히</option>
@@ -29,17 +29,40 @@
       <option value="guard">방어</option>
     </select>
 
-    <button class="btn btn-solid submit" type="submit">제출하기</button>
+    <div class="submit">
+      <button class="btn btn-solid submit" type="submit">코드 제출하기</button>
+    </div>
   </form>
 </section>
 
   <script type="text/javascript">
     document.unityPlayerReady = function() {
-      $('#submission').css('display', 'block');
+      setSubmitButtonStatus(true);
+    }
+
+    function setSubmitButtonStatus(e) {
+      $('.submit').prop('disabled', !e);
     }
     
     $(document).ready(function() {
-      $('#submission').css('display', 'none');
+      setSubmitButtonStatus(false);
+
+      $(document).delegate('.script-text', 'keydown', function(e) {
+        var keyCode = e.keyCode || e.which;
+
+        if (keyCode == 9) {
+          e.preventDefault();
+          var start = this.selectionStart;
+          var end = this.selectionEnd;
+
+          $(this).val($(this).val().substring(0, start)
+            + "    "
+            + $(this).val().substring(end));
+
+          this.selectionStart =
+          this.selectionEnd = start + 4;
+        }
+      });
         
       $('#submission').on('submit', function(event) {
         if (!$('input[name=script]').val() && !$('textarea[name=script_text]').val()) {
@@ -50,6 +73,8 @@
           return false;
         }
 
+        setSubmitButtonStatus(false);
+
         var formdata = new FormData($('#submission')[0]);
         $.ajax({
           url: "{{ url_for('.test_submission') }}",
@@ -58,11 +83,18 @@
           contentType: false,
           type: 'POST',
           success: function(data) {
+            setSubmitButtonStatus(true);
+
             if (data.result == 'success') {
               gameInstance.SendMessage('Controller', 'StartMatchByJson', JSON.stringify(data.match));
+              window.scrollTo(0, 0);
             } else {
               alert('오류가 발생했습니다: ' + data.error + '\n' + data.output);
             }
+          },
+          error: function(jqhxr, textstatus, errorThrown) {
+            setSubmitButtonStatus(true);
+            alert('서버 오류가 발생했습니다: ' + textstatus);
           }
         });
         

@@ -92,6 +92,15 @@ class TournamentMatchSet(Base):
     final_match_id = Column(UUIDType, ForeignKey('match.id'))
     final_match = relationship('Match', uselist=False)
 
+    @property
+    def group_name(self):
+        from .util import get_match_set_group_names
+        session = object_session(self)
+        gns = get_match_set_group_names(self.tournament)
+        if self.id in gns:
+            return gns[self.id]
+        return None
+    
     __tablename__ = 'tournament_match_set'
 
 

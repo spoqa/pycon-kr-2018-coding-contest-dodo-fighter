@@ -44,6 +44,10 @@ def session() -> Session:
     return session
 
 
+def handle_no_result_found(exc):
+    return '404 Not Found', 404
+
+
 def close_session(exception=None):
     ctx = request._get_current_object()
     if hasattr(ctx, '_current_session'):
@@ -266,8 +270,7 @@ def submit(tournament_id: uuid.UUID):
     assert tournament.active
     file = request.files.get('script')
     if file is None:
-        flash({'message': '파일을 확인해 주세요.'})
-        return redirect(url_for('.index'))
+        return jsonify(result='failed', error='no_file_input')
     with tempfile.NamedTemporaryFile() as tf:
         make_tempfile_public(tf)
         file.save(tf)
@@ -278,12 +281,10 @@ def submit(tournament_id: uuid.UUID):
                 FixedAgent(Action.idle)
             )
             if winner != 0:
-                flash({'message': '테스트에 통과하지 못했습니다.'})
-                return redirect(url_for('.index'))
+                return jsonify(result='failed', error='test_not_passed')
         except ScriptException as e:
-            flash({'message': '코드에 오류가 있습니다.',
-                   'output': e.output})
-            return redirect(url_for('.index'))
+            return jsonify(result='failed', error='error_in_code',
+                           output=e.output)
         tf.seek(0)
         data = tf.read().decode('utf-8')
     submission = session.query(Submission).filter_by(
@@ -298,7 +299,7 @@ def submit(tournament_id: uuid.UUID):
                                 code=data)
         session.add(submission)
     session.commit()
-    return redirect(url_for('.index'))
+    return jsonify(result='success')
 
 
 @admin.route('/tournaments/<uuid:tournament_id>', methods=['GET'])
@@ -493,6 +494,7 @@ def create_web_app(app: App) -> Flask:
     wsgi.register_blueprint(ep)
     wsgi.register_blueprint(admin)
     wsgi.teardown_request(close_session)
+    wsgi.errorhandler(NoResultFound)(handle_no_result_found)
     wsgi.config['APP'] = app
     wsgi.secret_key = app.secret_key
     wsgi.wsgi_app = SassMiddleware(wsgi.wsgi_app, {
