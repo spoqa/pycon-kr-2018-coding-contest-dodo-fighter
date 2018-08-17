@@ -7,32 +7,32 @@
 <section class="section section-playground">
   <h2 class="section-title">코드 테스트하기</h2>
   <p class="instruction">코드파일을 업로드하거나 스크립트를 직접 작성해 제출해주세요. 작성 방법은 <a href="https://gist.github.com/segfault87/b9ccf17d682c5bcfa6a6b4bcae36856e">여기</a>를 참고해 주세요.</p>
-  <form id="submission" class="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
+  <div class="form-wrap">
+    <form id="submission" class="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
+      <div class="form-section">
+        <h3 class="subtitle">코드 파일 업로드</h3>
+        <input type="file" name="script" class="form-control" />
 
-    <h3 class="subtitle">코드 파일 업로드</h3>
-    <input class="form-control script-file" type="file" name="script" />
+      <h3 class="subtitle">또는 스크립트 직접 입력</h3>
+      <textarea class="script-text form-control" name="script_text"></textarea>
 
-    <h3 class="subtitle">또는 스크립트 직접 작성</h3>
-    <textarea class="script-text" name="script_text"></textarea>
-
-    <h3 class="subtitle">상대 동작</h3>
-    <select class="form-control script-type" name="type">
-      <option value="random">랜덤</option>
-      <option value="clone">클론</option>
-      <option value="idle">가만히</option>
-      <option value="forward">앞으로</option>
-      <option value="backward">뒤로</option>
-      <option value="punch">펀치</option>
-      <option value="kick">킥</option>
-      <option value="crouch">숙이기</option>
-      <option value="jump">점프</option>
-      <option value="guard">방어</option>
-    </select>
-
-    <div class="submit">
-      <button class="btn btn-solid submit" type="submit">코드 제출하기</button>
-    </div>
-  </form>
+      <h3 class="subtitle">상대 동작</h3>
+      <select name="type" class="form-control">
+        <option value="random">랜덤</option>
+        <option value="clone">클론</option>
+        <option value="idle">가만히</option>
+        <option value="forward">앞으로</option>
+        <option value="backward">뒤로</option>
+        <option value="punch">펀치</option>
+        <option value="kick">킥</option>
+        <option value="crouch">숙이기</option>
+        <option value="jump">점프</option>
+        <option value="guard">방어</option>
+      </select>
+      </div>
+      <button class="btn btn-solid submit" type="submit">제출하기</button>
+    </form>
+  </div>
 </section>
 
   <script type="text/javascript">

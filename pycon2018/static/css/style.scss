@@ -13,6 +13,13 @@ $cover-background-color: $mainblue-0;
 @import "dooboo/_dooboo-default";
 
 body {
+  .toast-wrap {
+    .toast {
+      .message {
+        line-height: 1.5;
+      }
+    }
+  }
   .container-fluid {
     padding: 0;
     max-width: 1280px;
@@ -191,23 +198,39 @@ body {
           height: 160px;
         }
 
-        .display-name {
-          width: 70%;
-          height: 33%;
-          text-align: left;
-          font-size: 28px;
+        .match-set {
+          font-size: 36px;
           font-weight: bold;
           font-style: normal;
           font-stretch: normal;
           line-height: 1;
           letter-spacing: normal;
-          color: #363a3c;
-          padding-left: 16px;
+          color: #878d91;
+          text-align: left;
+        }
+
+        .status {
+          display: flex;
+          align-items: baseline;
+          margin-bottom: 8px;
+
+          .display-name {
+            text-align: left;
+            font-size: 28px;
+            font-weight: bold;
+            font-style: normal;
+            font-stretch: normal;
+            line-height: 1;
+            letter-spacing: normal;
+            color: #363a3c;
+            margin-right: 4px;
+          }
+          .submission {
+          }
         }
 
         .code-form {
           width: 400px;
-          margin-left: 16px;
 
           .script {
             width: 100%;
@@ -299,9 +322,7 @@ body {
 
     .section-playground {
       background-color: #f8fafb;
-      padding-top: 60px;
-      padding-left: 85px;
-      padding-bottom: 60px;
+      padding: 60px 0 60px 85px;
 
       .section-title {
         font-size: 44px;
@@ -341,7 +362,6 @@ body {
           line-height: 1;
           letter-spacing: normal;
           color: #878d91;
-          margin-bottom: 20px;
         }
         .script-text {
           width: 1030px;
