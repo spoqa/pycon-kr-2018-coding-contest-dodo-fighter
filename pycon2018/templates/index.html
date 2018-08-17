@@ -71,7 +71,12 @@
               대기 중
             {% endif %}
           </p>
-          <p class="display-name">{{ current_user.display_name }}</p>
+          <span class="status">
+            <p class="display-name">{{ current_user.display_name }}</p>
+            {% if submission %}
+              <p class="submission">{{ submission.created_at.strftime('%Y-%m-%d %H:%m') }}에 제출</p>
+            {% endif %}
+          </span>
           {% if current_tournament %}
             {% if current_tournament.final_match %}
               <p>현재 토너먼트는 마감되었습니다.</p>
@@ -80,9 +85,9 @@
               <p>제출이 이미 토너먼트에 올라갔으므로 수정할 수 없습니다.</p>
             {% else %}
               <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data" class="code-form">
-                <input type="file" class="code-script" name="script" style="display: none;" />
+                <input type="file" class="script code-script" style="display: none;" name="script" />
                 <button class="btn btn-solid code-submit">코드 제출하기</button>
-              </form>>
+              </form>
             {% endif %}
           {% else %}
             <p>진행중인 토너먼트가 없습니다.</p>
@@ -158,12 +163,11 @@
       });
     }
 
-    $(document).ready(function() {
+   $(document).ready(function() {
       var submitButton = $('.code-form .code-submit');
       var fileInput = $('.code-form .code-script')
       if (submitButton && fileInput) {
         fileInput.on('change', function(e) {
-          console.log(fileInput.val());
           if (fileInput.val())
             uploadFile($('.code-form')[0]);
         });
