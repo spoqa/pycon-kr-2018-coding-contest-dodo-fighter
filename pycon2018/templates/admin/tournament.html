@@ -1,4 +1,4 @@
-{% extends "backbone.html" %}
+{% extends "admin/backbone.html" %}
 
 {% block body %}
 
@@ -21,8 +21,8 @@
 
   <h2>조 목록</h2>
   
-  {% for i, match_set in enumerate(tournament.match_sets) %}
-    <h3>{{ i+1 }}조</h3>
+  {% for match_set in tournament.match_sets %}
+    <h3>{{ group_names[match_set.id] }}조</h3>
 
     <ul>
       {% for item in match_set.items %}

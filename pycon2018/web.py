@@ -23,7 +23,8 @@ from .entities import (Match, Submission, Tournament, TournamentMatchSet,
                        TournamentMatchSetItem, User)
 from .game import (Action, FixedAgent, RandomAgent, ScriptException,
                    run_matches, run_matches_submission)
-from .util import build_match_tree, make_tempfile_public, ngroup
+from .util import (build_match_tree, get_match_set_group_names,
+                   make_tempfile_public, ngroup)
 
 
 current_app = LocalProxy(lambda: current_flask_app.config['APP'])
@@ -316,9 +317,10 @@ def tournament(tournament_id: uuid.UUID):
         tree = build_match_tree(tournament.final_match)
     else:
         tree = None
+    group_names = get_match_set_group_names(session, tournament)
     return render_template('admin/tournament.html', tournament=tournament,
                            submissions_without_match=submissions_without_match,
-                           tree=tree, enumerate=enumerate, range=range)
+                           tree=tree, range=range, group_names=group_names)
 
 
 @admin.route('/tournaments/<uuid:tournament_id>/match_sets',

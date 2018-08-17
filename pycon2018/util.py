@@ -41,14 +41,14 @@ def get_match_set_group_names(
         session: Session, tournament: Tournament
 ) -> collections.OrderedDict:
     az = string.ascii_uppercase
-    query = sesion.query(TournamentMatchSetItem.id).filter_by(
+    query = session.query(TournamentMatchSet.id).filter_by(
         tournament=tournament
-    ).order_by(TournamentMatchSetItem.created_at.asc())
+    ).order_by(TournamentMatchSet.created_at.asc())
     result = collections.OrderedDict()
-    for index, (item, ) in enumerate(query):
+    for index, (id, ) in enumerate(query):
         if index >= len(az):
             name = az[index // len(az)] + az[index % len(z)]
         else:
             name = az[index]
-        result[i.id] = name
+        result[id] = name
     return result
