@@ -13,6 +13,13 @@ $cover-background-color: $mainblue-0;
 @import "dooboo/_dooboo-default";
 
 body {
+  .toast-wrap {
+    .toast {
+      .message {
+        line-height: 1.5;
+      }
+    }
+  }
   .container-fluid {
     padding: 0;
     max-width: 1280px;
