@@ -13,6 +13,10 @@ PERMITTED_MODULES = ['json', 'math', 'random', 'sys']
 KEEP_ALIVE_TIME = 3
 
 
+def patch_sys_module():
+    sys.modules = {}
+
+
 class ProhibitedModuleException(Exception):
 
     def __init__(self, name):
@@ -48,5 +52,6 @@ if __name__ == '__main__':
     t = threading.Thread(target=oot_killer)
     t.daemon = True
     t.start()
+    patch_sys_module()
     exec(compile(root, filename='<ast>', mode='exec'), {})
 
