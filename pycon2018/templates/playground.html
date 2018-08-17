@@ -1,14 +1,22 @@
 {% extends "backbone_game.html" %}
 
 {% block body %}
-  
+<section class="section">
   <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
+</section>
+<section class="section section-playground">
+  <h2 class="section-title">코드 테스트하기</h2>
+  <p class="instruction">코드파일을 업로드하거나 스크립트를 직접 작성해 제출해주세요.</p>
+  <form id="submission" class="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
 
-  <form id="submission" action="{{ url_for('.test_submission') }}" method="POST" enctype="multipart/form-data">
-    파일 선택: <input type="file" name="script" /><br />
-    또는 스크립트 직접 입력: <br />
-    <textarea name="script_text" style="width: 600px; height: 400px;"></textarea><br />
-    상대 동작: <select name="type">
+    <h3 class="subtitle">코드 파일 업로드</h3>
+    <input type="file" name="script" />
+
+    <h3 class="subtitle">또는 스크립트 직접 입력</h3>
+    <textarea class="script-text" name="script_text" style="width: 600px; height: 400px;"></textarea>
+
+    <h3 class="subtitle">상대 동작</h3>
+    <select name="type">
       <option value="random">랜덤</option>
       <option value="clone">클론</option>
       <option value="idle">가만히</option>
@@ -19,9 +27,11 @@
       <option value="crouch">숙이기</option>
       <option value="jump">점프</option>
       <option value="guard">방어</option>
-    </select><br />
-    <input type="submit" />
+    </select>
+
+    <button class="btn btn-solid submit" type="submit">제출하기</button>
   </form>
+</section>
 
   <script type="text/javascript">
     document.unityPlayerReady = function() {

@@ -13,3 +13,10 @@ dev.toml
 
 .tox/
 junit-*.xml
+
+*.scss.css
+*.map
+
+*.egg-info/
+build
+dist

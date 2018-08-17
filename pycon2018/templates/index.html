@@ -1,12 +1,6 @@
 {% extends "backbone.html" %}
 
 {% block body %}
-  <h1>도도-파이터</h1>
-
-  {% if current_user.is_authenticated %}
-    <a href="{{ url_for('.playground') }}">테스트해보기</a>
-  {% endif %}
-
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <h2>에러</h2>
@@ -17,39 +11,142 @@
       </ul>
     {% endif %}
   {% endwith %}
-  <h2>로그인</h2>
-  {% if current_user.is_authenticated %}
-    {{ current_user.display_name }}로 로그인됨 <a href="{{ url_for('.logout') }}">[로그아웃]</a>
-  {% else %}
-    <a href="https://github.com/login/oauth/authorize?scope=user:email&client_id={{ github_oauth_client_id }}">GitHub으로 로그인</a>
-  {% endif %}
-  <h2>현재 진행중인 토너먼트</h2>
-  {% if current_tournament %}
-    {% if current_tournament.final_match %}
-      현재 토너먼트는 마감되었습니다. <a href="{{ url_for('.game', tournament_id=current_tournament.id) }}">보기</a>
-    {% else %}
-      현재 제출 수: {{ count }}<br />
-      제출 기한: {{ current_tournament.finish_at.strftime('%Y-%m-%d %H:%M') }} <br />
-      {% if submission %}
-        이미 {{ submission.created_at.strftime('%Y-%m-%d %H:%M') }} 에 올린 제출물이 있습니다.<br />
+  <div class="topnav">
+    <div class="brand-logo-wrap">
+      <a href="/" class="brand-logo"></a>
+    </div>
+    <ul class="topnav-menus">
+      <li>
+        <a class="topnav-menu"
+           href="#section-overview">도도 파이터?</a>
+      </li>
+      <li>
+        <a class="topnav-menu"
+           href="#section-rule">게임 규칙</a>
+      </li>
+      {% if current_user.is_authenticated %}
+      <li>
+        <a class="topnav-menu"
+           href="{{ url_for('.playground') }}" target="_blank">플레이해보기</a>
+      </li>
       {% endif %}
-      {% if submission and submission.match_item %}
-        제출이 이미 토너먼트에 올라갔으므로 수정할 수 없습니다.<br />
-      {% elif current_user.is_authenticated %}
-        {% if submission %}
-          <h2>수정</h2>
+    </ul>
+    <ul class="topnav-menus topnav-menus-right">
+      <li id="topnav-login">
+        {% if current_user.is_authenticated %}
+          <div class="topnav-menu github-profile">
+            {{ current_user.display_name }}님 <a href="{{ url_for('.logout') }}">[로그아웃]</a>
+          </div>
         {% else %}
-          <h2>제출</h2>
+          <a class="topnav-menu login-menu" href="https://github.com/login/oauth/authorize?scope=user:email&client_id={{ github_oauth_client_id }}">GitHub으로 로그인</a>
         {% endif %}
-        <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data">
-          <input type="file" name="script" />
-          <input type="submit" />
-        </form>
+      </li>
+    </ul>
+  </div>
+  <section class="section section-logo">
+    <div class="dodofighter-logo-wrap">
+      <img src="{{ url_for('static', filename='images/logo/dodofighter-logo.png') }}"
+           srcset="{{ url_for('static', filename='images/logo/dodofighter-logo@2x.png') }} 2x,
+                {{ url_for('static', filename='images/logo/dodofighter-logo@3x.png') }} 3x"
+           class="dodofighter-logo">
+      <p class="caption">
+        평화로운 도도 포인트 마을. <br>
+        체력왕 사장님은 과연 누가 될 것인가?
+      </p>
+      <a class="tournament-link"  href="#section-tournament"></a>
+    </div>
+  </section>
+  <section class="section section-overview" id="section-overview">
+    <img src="{{ url_for('static', filename='images/trophy.png')}}">
+    <p class="overview">
+      파이썬으로 인공지능 코드를 작성하여 다른 참가자와 겨루는
+      인공지능 격투 대전 게임, 도도 파이터!
+      여러분이 직접 작성한 코드로 인공지능을 움직이고
+      무슨 행동을 할지 결정할 수 있습니다.
+      지금 바로 도전해 보세요!
+    </p>
+  </section>
+  <section class="section section-tournament" id="section-tournament">
+    <h2 class="section-title">대회 참가 현황</h2>
+    <p>코드 제출 기한 <span>2018년 8월 14일 13:00 - 2018년 8월 15일 13:00</span></p>
+
+    <div class="card">
+      {% if current_user.is_authenticated %}
+        <div class="my-info">
+          <img src="{{ current_user.avatar }}" class="avatar" />
+          <p class="display-name">{{ current_user.display_name }}</p>
+          {% if current_tournament %}
+
+            {% if current_tournament.final_match %}
+              <p>현재 토너먼트는 마감되었습니다.</p>
+              <a class="btn btn-solid" href="{{ url_for('.game', tournament_id=current_tournament.id) }}">결과 보기</a>
+            {% elif submission and submission.match_item %}
+              <p>제출이 이미 토너먼트에 올라갔으므로 수정할 수 없습니다.</p>
+            {% else %}
+              <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data" class="code-form">
+                <input type="file" class="script" name="script" />
+                <button type="submit" class="btn btn-solid code-submit">코드 제출하기</button>
+              </form>
+            {% endif %}
+          {% else %}
+            <p>진행중인 토너먼트가 없습니다.</p>
+          {% endif %}
+        </div>
+      {% else %}
+      <div class="login-form">
+        <p class="instruction">도도 파이터에 참가하시려면 GitHub로 로그인해주세요.</p>
+        <a class="btn btn-default login-button" href="https://github.com/login/oauth/authorize?scope=user:email&client_id={{ github_oauth_client_id }}">GitHub로 로그인</a>
+      </div>
       {% endif %}
-    {% endif %}
-  {% else %}
-    진행중인 토너먼트가 없습니다.
-  {% endif %}
+    </div>
+  </section>
+  <section class="section section-rule" id="section-rule">
+    <h2 class="section-title">게임 규칙</h2>
+    <ul class="instruction">
+      <li>도도 파이터는 대전 격투 게임의 형태를 취하고 있습니다.</li>
+      <li>도도 파이터는 토너먼트 형식으로 운영됩니다.</li>
+      <li>참가자들은 조 단위로 나누어집니다. 조 안에서 토너먼트를 통해 각 조의 우승자를 뽑습니다.</li>
+      <li>제출 기한이 완료되면 다시 토너먼트를 통해 각 조의 우승자들 중에서 최종 우승자를 뽑습니다.</li>
+      <li>조 구성은 수시로 이루어지며 운영 상황에 따라 유동적으로 정해질 수 있습니다.</li>
+      <li>각 경기는 3판 2선승제입니다.</li>
+      <li>경기는 턴제로 이루어지며, 경기당 총 30턴이 주어집니다. 매 턴마다 무슨 행동을 취할지를 결정하는 것이 AI의 역할입니다.</li>
+      <li>예제 코드를 참고해 주세요.</li>
+      <li>
+        AI가 취할 수 있는 행동은 아래와 같습니다.
+        <ul>
+          <li><code>idle</code> - 아무것도 안 하고 가만히 있습니다.</li>
+          <li><code>forward</code> - 앞으로 한 칸 움직입니다. 바로 앞에 상대가 있으면 더 나아갈 수 없습니다.</li>
+          <li><code>backward</code> - 뒤로 한 칸 움직입니다. 뒤로 갈 수 있는 거리에는 제한이 있으며 시작 위치에서 세 칸 이상 갈 수 없습니다.</li>
+          <li><code>punch</code> - 상단을 공격합니다.</li>
+          <li><code>kick</code> - 하단을 공격합니다.</li>
+          <li><code>crouch</code> - 숙여서 상단 공격을 피합니다.</li>
+          <li><code>jump</code> - 뛰어서 하단 공격을 피합니다.</li>
+          <li><code>guard</code> - 공격을 방어합니다. 상, 하단 공격 모두 방어할 수 있지만 약간의 대미지가 주어집니다.</li>
+        </ul>
+      </li>
+      <li>
+        매 턴마다 AI에게 전달되는 정보는 아래와 같습니다.
+        <ul>
+          <li><code>distance</code> - 상대방과 나와의 거리. 0이어야 공격이 가능합니다.</li>
+          <li><code>time_left</code> - 남은 턴 수</li>
+          <li><code>health</code> - 현재 나의 체력. 최대 100입니다. 0이 되면 패배합니다.</li>
+          <li><code>opponent_health</code> - 현재 상대의 체력.</li>
+          <li><code>opponent_action</code> - 직전 상대의 행동.</li>
+          <li><code>given_damage</code> - 직전 내가 가한 대미지.</li>
+          <li><code>taken_damage</code> - 직전 내가 받은 대미지.</li>
+          <li><code>match_records</code> - 지금까지의 전적 목록. 예를 들어 <code>[None, True, False]</code>인 경우, 첫번째 경기는 무승부, 두번째 경기는 당신이, 세번째 경기는 상대방이 이겼다는 뜻입니다.</li>
+        </ul>
+      </li>
+      <li>코드가 같은 액션을 계속 반복하면 공격 데미지에 약간의 패널티가 주어집니다.</li>
+      <li>상대의 공격을 회피하거나 방어에 성공하면 가할 수 있는 데미지에 약간의 어드밴티지가 주어집니다.</li>
+      <li>코드 검사 절차가 있습니다. 가만히 있는 더미 플레이어를 상대로 이겨야 제출이 이루어집니다.</li>
+      <li>코드에는 아래 제약이 있습니다.
+        <ul>
+          <li>사용할 수 있는 외부 모듈은 math, random 으로 제한됩니다.</li>
+          <li>수행 시간이 3초를 초과하는 코드는 제출하실 수 없습니다.</li>
+        </ul>
+      </li>
+  </section>
 {% endblock %}
 
 
