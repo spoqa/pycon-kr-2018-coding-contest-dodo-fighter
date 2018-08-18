@@ -7,7 +7,6 @@ from flask import (Blueprint, Flask, abort, current_app as current_flask_app,
                    g, jsonify, redirect, render_template, request,
                    url_for)
 from flask_cdn import CDN
-from flask_cors import CORS
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
 from raven.contrib.flask import Sentry

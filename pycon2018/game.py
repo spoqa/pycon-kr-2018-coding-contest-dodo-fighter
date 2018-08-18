@@ -64,6 +64,7 @@ class Agent:
     def get_action(self, opponent, match_records: typing.Sequence[str],
                    time_left: int) -> Action:
         action = self._get_action(opponent, match_records, time_left)
+        self.last_action = action
         self.previous_actions.append(action)
         return action
 
@@ -148,10 +149,9 @@ class ExternalScriptAgent(Agent):
             err = self.handle.stderr.read(1024).decode('utf-8')
             raise ScriptException('Unexpected end of file.', err)
         try:
-            self.last_action = Action(action)
+            return Action(action)
         except ValueError:
             raise ScriptException(f'Unknown action {action}', None)
-        return self.last_action
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.handle.terminate()
