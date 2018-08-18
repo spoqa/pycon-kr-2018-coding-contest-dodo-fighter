@@ -2,9 +2,14 @@
 <html lang="ko">
   <head>
     <meta charset="utf-8">
-    <title>도도파이터</title>
+    <title>도도 파이터</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.scss.css') }}">
+    <meta property="og:title" content="도도 파이터" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="http://pycon-2018-dodo-fighter.spoqa.com" />
+    <meta property="og:description" content="파이썬으로 인공지능 코드를 작성하여 다른 참가자와 겨루는 인공지능 격투 대전 게임, 도도 파이터!" />
+    <meta property="og:image" content="{{ url_for('static', filename='images/dodofighter_og-image.png' ) }}" />
     <script type="text/javascript" src="{{ url_for('static', filename='jquery-3.3.1.min.js') }}"></script>
     <script>
     </script>
