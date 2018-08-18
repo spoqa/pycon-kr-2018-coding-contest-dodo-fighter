@@ -2,41 +2,74 @@
 
 {% block body %}
 
+  <section class="section">
+    <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
+  </section>
+
+  <section class="section section-game">
+
+    <div class="current-game">
+      <span class="header">현재 경기</span>
+      <span class="current-game-information"></span>
+    </div>
+
+  </section>
+
   <script type="text/javascript">
+    
+    var match_set_id = {% if match_set %}'{{ match_set.id }}'{% else %}null{% endif %};
+    var tournament_id = {% if tournament %}'{{ tournament.id }}'{% else %}null{% endif %};
+    var undisclosed_clickable = {{ current_user.is_authenticated and current_user.moderator | tojson }};
+
+
     $(document).ready(function() {
-      $('#matchList').css('display', 'none');
+      
     });
     
     document.unityPlayerReady = function() {
-      $('#matchList').css('display', 'block');
+      if (match_set_id)
+        var url = '/match_sets/' + match_set_id + '/tree';
+      else
+        var url = '/tournaments/' + tournament_id + '/tree';
+
+      $.ajax({
+        url: url,
+        method: 'GET',
+        success: function(data) {
+          updateMatchTree(data.tree);
+        },
+        error: function(jqxhr, textStatus, errorThrown) {
+          alert('서버 오류가 발생했습니다: ' + textStatus);
+        }
+      });
+    }
+
+    document.matchFinished = function() {
+      
     }
 
     document.discloseMatch = function(uuid) {
-      console.log('disclose match: ' + uuid);
+      $.ajax({
+        url: '/matches/' + uuid + '/disclose',
+        method: 'POST',
+        success: function(data) {
+          updateMatchTree(data.tree);
+        },
+        error: function(jqxhr, textStatus, errorThrown) {
+          alert('서버 오류가 발생했습니다: ' + textStatus);
+        }
+      });
     }
+
+    function updateMatchTree(tree) {
+      console.log(tree);
+    }
+
+    function startMatch(uuid, p1, p2, tier) {
+      $('.current-game-information').html('(' + tier + ') <span class="player">' + p1 + '</span> VS <span class="player">' + p2 + '</span>');
+      gameInstance.SendMessage('Controller', 'StartMatchByUuid', uuid);
+    }
+
   </script>
-
-  <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
-
-  <ul id="matchList">
-    {% for i in range(final_match.iteration + 1) %}
-      {% if i in tree %}
-        <li> {{ i + 1 }}차전:
-          {% for match in tree[i] %}
-            {% if match.p1 and match.p2 %}
-              <a href="javascript:gameInstance.SendMessage('Controller', 'StartMatchByUuid', '{{ match.id }}')">
-                @{{ match.p1.submission.user.display_name }} VS @{{ match.p2.submission.user.display_name }}
-              </a>
-            {% else %}
-              {% if match.p1 %} @{{ match.p1.submission.user.display_name }}{% else %}-{% endif %}
-              VS
-              {% if match.p2 %} @{{ match.p2.submission.user.display_name }}{% else %}-{% endif %}
-            {% endif %}
-            |
-          {% endfor %}
-        </li>
-      {% endif %}
-    {% endfor %}
-  </ul>
 
 {% endblock %}

@@ -28,7 +28,7 @@ class User(Base):
 
     def get_id(self):
         return str(self.id)
-    
+
     __tablename__ = 'user'
 
 
@@ -36,7 +36,7 @@ class Tournament(Base):
     id = Column(UUIDType, primary_key=True, default=uuid.uuid4)
     begin_at = Column(DateTime, nullable=False)
     finish_at = Column(DateTime, nullable=False)
-    
+
     final_match_id = Column(UUIDType, ForeignKey('match.id'))
     final_match = relationship('Match', uselist=False)
 
@@ -54,9 +54,24 @@ class Tournament(Base):
     __tablename__ = 'tournament'
 
 
+class Audit(Base):
+    id = Column(UUIDType, primary_key=True, default=uuid.uuid4)
+
+    user_id = Column(UUIDType, ForeignKey(User.id), nullable=False)
+    user = relationship(User, uselist=False, lazy='joined')
+    
+    code = Column(Text, nullable=False)
+
+    created_at = Column(DateTime, nullable=False,
+                        default=datetime.datetime.now,
+                        index=True)
+
+    __tablename__ = 'audit'
+
+
 class Submission(Base):
     id = Column(UUIDType, primary_key=True, default=uuid.uuid4)
-    
+
     tournament_id = Column(UUIDType, ForeignKey(Tournament.id),
                            nullable=False)
     tournament = relationship(Tournament, uselist=False)
@@ -96,11 +111,11 @@ class TournamentMatchSet(Base):
     def group_name(self):
         from .util import get_match_set_group_names
         session = object_session(self)
-        gns = get_match_set_group_names(self.tournament)
+        gns = get_match_set_group_names(session, self.tournament)
         if self.id in gns:
             return gns[self.id]
         return None
-    
+
     __tablename__ = 'tournament_match_set'
 
 
@@ -151,7 +166,19 @@ class Match(Base):
     match_data = Column(JSON, nullable=False)
     disclosed = Column(Boolean, nullable=False, default=False)
 
+    @property
+    def terminal(self):
+        child = self
+        while child.p1_child or child.p2_child:
+            child = self.p1_child or self.p2_child
+        return child
+
+    @property
+    def match_set(self) -> TournamentMatchSet:
+        assert self.p1 or self.p2, f'Match {self} has no players.'
+        if self.p1:
+            return self.p1.tournament_match_set
+        else:
+            return self.p2.tournament_match_set
+
     __tablename__ = 'match'
-
-
-

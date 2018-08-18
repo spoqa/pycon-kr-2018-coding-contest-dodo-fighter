@@ -1,0 +1,39 @@
+{% extends "backbone_game.html" %}
+
+{% block body %}
+
+  <script type="text/javascript">
+    document.unityPlayerReady = function() {
+      nextMatch();
+    }
+
+    document.matchFinished = function() {
+      nextMatch();
+    }
+
+    function nextMatch() {
+      $.ajax({
+          url: "{{ url_for('.random_match') }}",
+          success: function(data) {
+            console.log(data);
+            gameInstance.SendMessage('Controller', 'StartMatchByJson', JSON.stringify(data));
+          },
+          error: function(jqhxr, textStatus, errorThrown) {
+            setTimeout(nextMatch, 5000);
+          }
+      });
+    }
+
+  </script>
+
+  <section class="section">
+    <div id="gameContainer" style="width: 1280px; height: 720px; margin: auto"></div>
+  </section>
+
+  <section class="section section-billboard">
+    <p class="daemoonjjak">🤔참가 대환영 — <em>http://bit.ly/dodo-fighter</em>🤔</p>
+  </section>
+
+  
+
+{% endblock %}

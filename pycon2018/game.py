@@ -79,7 +79,7 @@ class Agent:
             action_diversity_multiplier = 2 / 3
         else:
             action_diversity_multiplier = 1.0
-        guard_multiplier = 1.3 ** self.guard_count
+        guard_multiplier = 1.25 ** self.guard_count
         return int(damage * action_diversity_multiplier * guard_multiplier)
 
     def inflict_damage(self, opponent, damage: int):
@@ -119,6 +119,7 @@ class ScriptException(Exception):
 
     def __init__(self, message: str, output: str):
         super(ScriptException, self).__init__(message)
+        self.message = message
         self.output = output
 
     def __str__(self):
@@ -139,7 +140,7 @@ class ExternalScriptAgent(Agent):
             self.handle.stdin.write(payload.encode('utf-8'))
             self.handle.stdin.write(b'\n')
             self.handle.stdin.flush()
-        except:
+        except Exception:
             err = self.handle.stderr.read(1024).decode('utf-8')
             raise ScriptException('Broken pipe.', err)
         action = self.handle.stdout.readline().decode('utf-8').strip()
@@ -148,13 +149,13 @@ class ExternalScriptAgent(Agent):
             raise ScriptException('Unexpected end of file.', err)
         try:
             self.last_action = Action(action)
-        except:
+        except ValueError:
             raise ScriptException(f'Unknown action {action}', None)
         return self.last_action
 
     def __exit__(self, exception_type, exception_value, traceback):
         self.handle.terminate()
-    
+
 
 def evaluate(app: App, p1: Agent, p2: Agent,
              match_records: typing.Sequence[str], raise_: bool=False):
@@ -170,7 +171,7 @@ def evaluate(app: App, p1: Agent, p2: Agent,
             'p1': {'health': p1.health, 'position': p1.position},
             'p2': {'health': p2.health, 'position': p2.position},
             **kwargs})
-    
+
     while time_left >= 0:
         try:
             p1a = p1.get_action(p2, match_records, time_left)
@@ -357,7 +358,7 @@ def run_matches_submission(app: App, p1: Submission, p2: Submission):
         tf1.flush()
         tf2.write(p2.code.encode('utf-8'))
         tf2.flush()
-        return run_matches(app, tf1.name, tf2.name)            
+        return run_matches(app, tf1.name, tf2.name)
 
 
 def test():

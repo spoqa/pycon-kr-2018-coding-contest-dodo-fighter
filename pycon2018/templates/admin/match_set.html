@@ -5,45 +5,12 @@
 
   <h2>매치 기록</h2>
 
-  {% for i in range(match_set.final_match.iteration + 1) %}
+  <ul>
+    {% for match in tree %}
 
-    {% if i in tree %}
-      <h3>{{ i + 1 }}차전</h3>
+      <li>{{ match }}</li>
 
-      <ul>
-      {% for match in tree[i] %}
-        <li>
-          <p>
-            {% if match.p1 %}
-              <a href="{{ url_for('.submission', submission_id=match.p1.submission.id) }}">@{{ match.p1.submission.user.display_name }}</a>
-            {% else %}
-              -
-            {% endif %}
-            VS
-            {% if match.p2 %}
-              <a href="{{ url_for('.submission', submission_id=match.p2.submission.id) }}">@{{ match.p2.submission.user.display_name }}</a>
-            {% else %}
-              -
-            {% endif %}
-            <br />
-            {% if match.match_data %}
-              <a href="{{ url_for('ep.show_match', match_id=match.id) }}">경기 결과</a>
-            {% else %}
-              경기 결과
-            {% endif %}
-            :
-            {% if match.winner %}
-              @{{ match.winner.submission.user.display_name }} 승리
-            {% else %}
-              무승부
-            {% endif %}
-          </p>
-        </li>
-      {% endfor %}
-      </ul>
-      
-    {% endif %}
-
-  {% endfor %}
+    {% endfor %}
+  </ul>
 
 {% endblock %}

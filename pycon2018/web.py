@@ -1,11 +1,13 @@
 import functools
+import random
 import tempfile
 import uuid
 
 from flask import (Blueprint, Flask, abort, current_app as current_flask_app,
-                   flash, g, jsonify, redirect, render_template, request,
+                   g, jsonify, redirect, render_template, request,
                    url_for)
 from flask_cdn import CDN
+from flask_cors import CORS
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
 from raven.contrib.flask import Sentry
@@ -19,8 +21,8 @@ from werkzeug.local import LocalProxy
 from werkzeug.urls import url_decode
 
 from .app import App
-from .entities import (Match, Submission, Tournament, TournamentMatchSet,
-                       TournamentMatchSetItem, User)
+from .entities import (Audit, Match, Submission, Tournament,
+                       TournamentMatchSet, TournamentMatchSetItem, User)
 from .game import (Action, FixedAgent, RandomAgent, ScriptException,
                    run_matches, run_matches_submission)
 from .util import (build_match_tree, get_match_set_group_names,
@@ -31,7 +33,6 @@ current_app = LocalProxy(lambda: current_flask_app.config['APP'])
 ep = Blueprint('ep', __name__)
 admin = Blueprint('admin', __name__, url_prefix='/admin')
 login_manager = LoginManager()
-cdn = CDN()
 
 
 @LocalProxy
@@ -72,6 +73,15 @@ def ongoing_tournament_required(f):
     return wrapper
 
 
+def moderator_required(f):
+    @functools.wraps(f)
+    def wrapper(*args, **kwargs):
+        if not current_user.is_authenticated or not current_user.moderator:
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapper
+
+
 @admin.before_request
 def check_moderator():
     if not current_user.is_authenticated or not current_user.moderator:
@@ -83,23 +93,29 @@ def inject_current_tournament():
     g.current_tournament = Tournament.get_current(session)
 
 
-@ep.route('/')
+@ep.route('/teaser')
 def teaser():
     return render_template('teaser.html')
 
 
-@ep.route('/dashboard')
+@ep.route('/')
 def index():
-    if g.current_tournament:
+    if request.args.get('tournament_id'):
+        tournament = session.query(Tournament).filter_by(
+            id=request.args.get('tournament_id')
+        ).one()
+    else:
+        tournament = g.current_tournament
+    if tournament:
         if current_user.is_authenticated:
             submission = session.query(Submission).filter_by(
                 user=current_user,
-                tournament=g.current_tournament
+                tournament=tournament
             ).one_or_none()
         else:
             submission = None
         count = session.query(Submission).filter_by(
-            tournament=g.current_tournament
+            tournament=tournament
         ).count()
     else:
         submission = None
@@ -107,7 +123,7 @@ def index():
     return render_template(
         'index.html',
         github_oauth_client_id=current_app.github_oauth_client_id,
-        current_tournament=g.current_tournament,
+        current_tournament=tournament,
         submission=submission, count=count
     )
 
@@ -123,10 +139,16 @@ def game(tournament_id: uuid.UUID):
     tournament = session.query(Tournament).filter_by(id=tournament_id).one()
     if not tournament.final_match:
         abort(404)
-    return render_template('game.html',
-                           final_match=tournament.final_match,
-                           tree=build_match_tree(tournament.final_match),
-                           range=range)
+    return render_template('game.html', match_set=None, tournament=tournament)
+
+
+@ep.route('/tournaments/<uuid:tournament_id>/tree')
+def tournament_match_tree(tournament_id: uuid.UUID):
+    tournament = session.query(Tournament).filter_by(id=tournament_id).one()
+    return jsonify(
+        result='success',
+        tree=build_match_tree(session, tournament.final_match, True, False)
+    )
 
 
 @ep.route('/match_sets/<uuid:set_id>')
@@ -134,10 +156,16 @@ def game_subtournament(set_id: uuid.UUID):
     mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
     if not mset.final_match:
         abort(404)
-    return render_template('game.html',
-                           final_match=mset.final_match,
-                           tree=build_match_tree(mset.final_match),
-                           range=range)
+    return render_template('game.html', match_set=mset, tournament=None)
+
+
+@ep.route('/match_sets/<uuid:set_id>/tree')
+def subtournament_match_tree(set_id: uuid.UUID):
+    mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
+    return jsonify(
+        result='success',
+        tree=build_match_tree(session, mset.final_match, False, False)
+    )
 
 
 @ep.route('/oauth/authorized')
@@ -177,9 +205,51 @@ def logout():
     return redirect(url_for('.index'))
 
 
+@ep.route('/random')
+@moderator_required
+def random_game():
+    return render_template('random.html')
+
+
+@ep.route('/matches/random')
+@moderator_required
+def random_match():
+    count = session.query(Submission).count()
+    if count == 0:
+        abort(404)
+    p1o = random.randrange(count)
+    p2o = random.randrange(count)
+    p1s = session.query(Submission).offset(p1o).limit(1).first()
+    p2s = session.query(Submission).offset(p2o).limit(1).first()
+    assert p1s and p2s
+    winner, data = run_matches_submission(current_app, p1s, p2s)
+    if winner == 0:
+        winner_ = 'p1'
+    elif winner == 1:
+        winner_ = 'p2'
+    else:
+        winner_ = None
+    result = {
+        'p1': {
+            'display_name': p1s.user.display_name,
+            'avatar': p1s.user.avatar
+        },
+        'p2': {
+            'display_name': p2s.user.display_name,
+            'avatar': p2s.user.avatar
+        },
+        'winner': winner_,
+        'data': data
+    }
+    return jsonify(**result)
+
+
 @ep.route('/matches/<uuid:match_id>')
 def show_match(match_id: uuid.UUID):
     match = session.query(Match).filter_by(id=match_id).one()
+    if not match.disclosed and (not current_user.is_authenticated or
+                                not current_user.moderator):
+        abort(403)
     if match.winner is match.p1:
         winner = 'p1'
     elif match.winner is match.p2:
@@ -201,12 +271,18 @@ def show_match(match_id: uuid.UUID):
     return jsonify(**result)
 
 
-@ep.route('/matches/<uuid:match_id>/disclose')
+@ep.route('/matches/<uuid:match_id>/disclose', methods=['POST'])
+@moderator_required
 def disclose_match(match_id: uuid.UUID):
     match = session.query(Match).filter_by(id=match_id).one()
     match.disclosed = True
     session.commit()
-    return jsonify(result='success')
+    tournament = match.match_set.tournament
+    terminal = match.terminal
+    tree = build_match_tree(
+        session, terminal, terminal is tournament.final_match, False
+    )
+    return jsonify(result='success', tree=tree)
 
 
 @ep.route('/test', methods=['POST'])
@@ -227,9 +303,15 @@ def test_submission():
         make_tempfile_public(tf)
         if file:
             file.save(tf)
+            file.seek(0)
+            code = file.read().decode('utf-8')
         else:
             tf.write(text.encode('utf-8'))
+            code = text
         tf.flush()
+        audit = Audit(user=current_user, code=code)
+        session.add(audit)
+        session.commit()
         if type == 'clone':
             agent = tf.name
             p2 = {
@@ -247,7 +329,7 @@ def test_submission():
             )
         except ScriptException as e:
             return jsonify(result='failed', error='script_error',
-                           output=e.output)
+                           output=e.output or e.message)
     if winner == 0:
         winner = 'p1'
     elif winner == 1:
@@ -299,6 +381,8 @@ def submit(tournament_id: uuid.UUID):
         submission = Submission(tournament=tournament, user=current_user,
                                 code=data)
         session.add(submission)
+    audit = Audit(user=current_user, code=data)
+    session.add(audit)
     session.commit()
     return jsonify(result='success')
 
@@ -311,10 +395,13 @@ def tournament(tournament_id: uuid.UUID):
     submissions_without_match = session.query(Submission).outerjoin(
         TournamentMatchSetItem
     ).filter(
-        TournamentMatchSetItem.id.is_(None)
+        TournamentMatchSetItem.id.is_(None),
+        Submission.tournament == tournament
     ).order_by(Submission.created_at)
     if tournament.final_match:
-        tree = build_match_tree(tournament.final_match)
+        tree = build_match_tree(
+            session, tournament.final_match, True, True
+        )
     else:
         tree = None
     group_names = get_match_set_group_names(session, tournament)
@@ -359,9 +446,10 @@ def match_set(set_id: uuid.UUID):
     mset = session.query(TournamentMatchSet).filter_by(id=set_id).one()
     if not mset.final_match:
         abort(404)
+    tree = build_match_tree(session, mset.final_match, False, True)
+    print(tree)
     return render_template('admin/match_set.html', match_set=mset,
-                           tree=build_match_tree(mset.final_match),
-                           range=range)
+                           tree=tree, range=range)
 
 
 @admin.route('/match_sets/<uuid:set_id>/create_match')
@@ -497,13 +585,23 @@ def create_web_app(app: App) -> Flask:
     wsgi.register_blueprint(admin)
     wsgi.teardown_request(close_session)
     wsgi.errorhandler(NoResultFound)(handle_no_result_found)
+    wsgi.config.update(app.web_config)
     wsgi.config['APP'] = app
     wsgi.secret_key = app.secret_key
     wsgi.wsgi_app = SassMiddleware(wsgi.wsgi_app, {
         'pycon2018': ('static/css', 'static/css', 'static/css')
     })
     login_manager.init_app(wsgi)
-    cdn.init_app(wsgi)
+    if wsgi.config.get('CDN_DOMAIN'):
+        cdn = CDN()
+        cors = CORS(
+            wsgi,
+            resources={r'*': {
+                'origins': '*'
+            }}
+        )
+        cdn.init_app(wsgi)
+        
     if app.sentry_dsn:
         Sentry(wsgi, dsn=app.sentry_dsn)
     return wsgi

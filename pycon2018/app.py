@@ -16,16 +16,6 @@ class App(Configuration):
         'database.url', str
     )
 
-    submission_open_ = config_property(
-        'submission.open', str,
-        default=None
-    )
-
-    submission_due_ = config_property(
-        'submission.due', str,
-        default=None
-    )
-
     github_oauth_client_id = config_property(
         'github.oauth_client_id', str
     )
@@ -78,18 +68,6 @@ class App(Configuration):
         'sentry.dsn', str, default=None
     )
 
-    @cached_property
-    def submission_open(self) -> typing.Optional[datetime.datetime]:
-        if self.submission_open_ is None:
-            return None
-        return parse_datetime(self.submission_open_)
-
-    @cached_property
-    def submission_due(self) -> typing.Optional[datetime.datetime]:
-        if self.submission_due_ is None:
-            return None
-        return parse_datetime(self.submission_due_)
-
     @property
     def game_hit_point_range(self) -> typing.Tuple[int]:
         return (self.game_hit_point_min, self.game_hit_point_max)
@@ -98,21 +76,6 @@ class App(Configuration):
     def game_hit_point_guard_range(self) -> typing.Tuple[int]:
         return (self.game_hit_point_guard_min, self.game_hit_point_guard_max)
 
-    @property
-    def submission_open(self) -> bool:
-        if self.submission_due is None and self.submission_open is None:
-            return True
-        now = datetime.datetime.utcnow()
-        if self.submission_open:
-            o = self.submission_open <= now
-        else:
-            o = True
-        if self.submission_due:
-            d = now < self.submission_due
-        else:
-            d = True
-        return o and d
-        
     @cached_property
     def database_engine(self) -> Engine:
         url = self.database_url

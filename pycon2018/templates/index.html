@@ -33,6 +33,16 @@
         <a class="topnav-menu"
            href="{{ url_for('.playground') }}" target="_blank">플레이해보기</a>
       </li>
+      {% if current_user.moderator %}
+      <li>
+        <a class="topnav-menu"
+          href="{{ url_for('.random_game') }}">랜덤 게임</a>
+      </li>
+      <li>
+        <a class="topnav-menu"
+          href="{{ url_for('admin.tournament', tournament_id=current_tournament.id) }}">관리자</a>
+      </li>
+      {% endif %}
       {% endif %}
     </ul>
     <ul class="topnav-menus topnav-menus-right">
@@ -72,7 +82,7 @@
   </section>
   <section class="section section-tournament" id="section-tournament">
     <h2 class="section-title">대회 참가 현황</h2>
-    <p>코드 제출 기한 <span>2018년 8월 17일 09:00 - 2018년 8월 18일 16:00</span></p>
+    <p>코드 제출 기한 <span>2018년 8월 18일 09:00 - 2018년 8월 19일 16:00</span></p>
 
     <div class="card">
       {% if current_user.is_authenticated %}
@@ -80,7 +90,7 @@
           <img src="{{ current_user.avatar }}" class="avatar" />
           <p class="match-set">
             {% if submission and submission.match_item %}
-              {{ submission.match_item.tournament_match_set.group_name }}
+              {{ submission.match_item.tournament_match_set.group_name }}조
             {% else %}
               대기 중
             {% endif %}
@@ -93,14 +103,20 @@
           </span>
           {% if current_tournament %}
             {% if current_tournament.final_match %}
-              <p>현재 토너먼트는 마감되었습니다.</p>
-              <a class="btn btn-solid" href="{{ url_for('.game', tournament_id=current_tournament.id) }}">결과 보기</a>
+              <div class="result-view">
+                <a class="btn btn-solid" href="{{ url_for('.game_subtournament', set_id=submission.match_item.tournament_match_set.id) }}">조 결과 보기</a>
+                <a class="btn btn-solid" href="{{ url_for('.game', tournament_id=current_tournament.id) }}">최종 결과 보기</a>
+              </div>
             {% elif submission and submission.match_item %}
-              <p>제출이 이미 토너먼트에 올라갔으므로 수정할 수 없습니다.</p>
+              {% if submission.match_item.tournament_match_set.final_match %}
+                <div class="result-view">
+                  <a class="btn btn-solid" href="{{ url_for('.game_subtournament', set_id=submission.match_item.tournament_match_set.id) }}">조 결과 보기</a>
+                </div>
+              {% endif %}
             {% else %}
               <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data" class="code-form">
                 <input type="file" class="script code-script" style="display: none;" name="script" />
-                <button class="btn btn-solid code-submit">코드 제출하기</button>
+                <button class="btn btn-solid code-submit">{% if submission %}코드 수정하기{% else %}코드 제출하기{% endif %}</button>
               </form>
             {% endif %}
           {% else %}
@@ -168,7 +184,7 @@
             $('.code-form .code-script').val('');
           }
         },
-        error: function(jqhxr, textstatus, errorThrown) {
+        error: function(jqxhr, textstatus, errorThrown) {
           setSubmitButtonStatus(true);
           alert('서버 오류가 발생했습니다: ' + textstatus);
 

@@ -229,6 +229,16 @@ body {
           }
         }
 
+        .result-view {
+          display: flex;
+
+          .btn {
+            flex: 1;
+            margin-left: 4px;
+            margin-right: 4px;
+          }
+        }
+
         .code-form {
           width: 400px;
 
@@ -322,7 +332,7 @@ body {
 
     .section-playground {
       background-color: #f8fafb;
-      padding: 60px 0 60px 85px;
+      padding: 60px 0 0 85px;
 
       .section-title {
         font-size: 44px;
@@ -389,18 +399,58 @@ body {
         }
       }
     }
-    .copyright {
-      width: 500px;
-      height: 14px;
-      font-size: 14px;
-      font-weight: normal;
-      font-style: normal;
-      font-stretch: normal;
-      line-height: 1;
-      letter-spacing: normal;
-      text-align: center;
-      color: #696f74;
-      margin: 45px auto 142px auto;
+
+    .section-footer {
+      background-color: #f8fafb;
+      padding-top: 45px;
+      padding-bottom: 142px;
+
+      .copyright {
+        width: 500px;
+        height: 14px;
+        font-size: 14px;
+        font-weight: normal;
+        font-style: normal;
+        font-stretch: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        text-align: center;
+        color: #696f74;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+
+    .section-billboard {
+      background-color: #f8fafb;
+      padding-top: 60px;
+
+      .daemoonjjak {
+        font-size: 60px;
+        text-align: center;
+      }
+    }
+
+    .section-game {
+      padding-top: 40px;
+      padding-left: 86px;
+      padding-right: 86px;
+      background-color: #f8fafb;
+
+      .current-game {
+        font-size: 18px;
+        color: black;
+
+        .header {
+          font-weight: bold;
+          color: #878d91;
+          margin-right: 47px;
+        }
+
+        .player {
+          font-weight: bold;
+        }
+      }
     }
   }
 

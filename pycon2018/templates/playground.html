@@ -92,7 +92,7 @@
               alert('오류가 발생했습니다: ' + data.error + '\n' + data.output);
             }
           },
-          error: function(jqhxr, textstatus, errorThrown) {
+          error: function(jqxhr, textstatus, errorThrown) {
             setSubmitButtonStatus(true);
             alert('서버 오류가 발생했습니다: ' + textstatus);
           }
