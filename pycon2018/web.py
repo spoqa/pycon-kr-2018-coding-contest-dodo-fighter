@@ -594,12 +594,6 @@ def create_web_app(app: App) -> Flask:
     login_manager.init_app(wsgi)
     if wsgi.config.get('CDN_DOMAIN'):
         cdn = CDN()
-        cors = CORS(
-            wsgi,
-            resources={r'*': {
-                'origins': '*'
-            }}
-        )
         cdn.init_app(wsgi)
         
     if app.sentry_dsn:
