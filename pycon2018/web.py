@@ -519,8 +519,8 @@ def finalize_matches(tournament_id: uuid.UUID):
         lmsets = []
         for pair in pairs:
             match = Match(
-                p1=pair[0][0].final_match.winner,
-                p2=pair[1][0].final_match.winner,
+                p1=pair[0][0].final_match.winner if pair[0][0] else None,
+                p2=pair[1][0].final_match.winner if pair[1][0] else None,
                 p1_parent=pair[0][1],
                 p2_parent=pair[1][1],
                 iteration=level,

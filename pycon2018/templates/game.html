@@ -63,38 +63,67 @@
           updateMatchTree(data.tree);
         },
         error: function(jqxhr, textStatus, errorThrown) {
-          alert('서버 오류가 발생했습니다: ' + textStatus);
         }
       });
     }
 
-   function updateMatchTree(tree) {
-     var $tournament = $('.tournament .status');
-     $tournament.empty();
+    function roundName(round) {
+      return round >= 8 ? round + '강' : (round >= 4) ? '준결승' : '결승';
+    }
 
-     tree.map(match => {
-       var round = (match.round >= 8 ? match.round + '강' : (match.round >= 4) ? '준결승' : '결승');
-       var $match = $('<div class="match"></div>');
-       var $round = $('<p class="round">'+ round +'</p>');
-       var $player1 = $('<p class="player">' +match.p1+ '</p>');
-       var $player2 = $('<p class="player">' +match.p2+ '</p>');
-       var $show = $('<button class="btn btn-default show">경기 보기</button>').click(_ => { startMatch(match.id, match.p1, match.p2, match.round) });
+    function updateMatchTree(tree) {
+      var $tournament = $('.tournament .status');
+      $tournament.empty();
 
-       $match.append($round).append($player1).append('<p>vs</p>').append($player2).append($show);
+      tree.map(match => {
+        var round = roundName(match.round);
+        var $match = $('<div class="match"></div>');
+        var $round = $('<p class="round">'+ round +'</p>');
+        var $player1 = $('<p class="player">' + (match.p1 ? match.p1 : '-') + '</p>');
+        var $player2 = $('<p class="player">' + (match.p2 ? match.p2 : '-') + '</p>');
+        var $show = $('<button class="btn btn-default show">경기 보기</button>');
 
-       if (undisclosed_clickable && match.p1 === '?') {
-         $match.append('<button class="btn btn-danger">결과 보기</button>').click(_ => {document.discloseMatch(match.id)});
-       }
+        if (match.p1_group)
+          $player1.prepend($('<span class="group">' + match.p1_group + '조 </span>'))
+        if (match.p2_group)
+          $player2.prepend($('<span class="group">' + match.p2_group + '조 </span>'))
 
-       return $('<div class="status"></div>').append($match);
-     }).forEach($matchEl => {
-       $tournament.append($matchEl);
-     });
-   }
+        if (match.p1 && match.p2)
+          var $winner = $('<span class="winner">WIN</span>');
+        else
+          var $winner = $('<span class="winner">부전승</span>');
 
-    function startMatch(uuid, p1, p2, tier) {
-      $('.current-game-information').html('(' + tier + ') <span class="player">' + p1 + '</span> VS <span class="player">' + p2 + '</span>');
+        if (match.winner === null) {
+          $player1.addClass('draw');
+          $player2.addClass('draw');
+        } else if (match.winner !== '?') {
+          if (match.winner === match.p1)
+            $player1.append($winner);
+          else if (match.winner === match.p2)
+            $player2.append($winner);
+        }
+
+        if ((undisclosed_clickable && match.winner === '?') || match.winner !== '?') {
+          if (match.p1 && match.p2)
+            $show.click(_ => { startMatch(match.id, match.p1, match.p2, match.round); });
+          else
+            $show.click(_ => { document.discloseMatch(match.id); });
+        } else {
+          $show.prop('disabled', true);
+        }
+
+        $match.append($round).append($player1).append('<p>vs</p>').append($player2).append($show);
+
+        return $('<div class="status"></div>').append($match);
+      }).forEach($matchEl => {
+        $tournament.append($matchEl);
+      });
+    }
+
+    function startMatch(uuid, p1, p2, round) {
+      $('.current-game-information').html('(' + roundName(round) + ') <span class="player">' + p1 + '</span> VS <span class="player">' + p2 + '</span>');
       gameInstance.SendMessage('Controller', 'StartMatchByUuid', uuid);
+      window.scrollTo(0, 0);
     }
 
   </script>

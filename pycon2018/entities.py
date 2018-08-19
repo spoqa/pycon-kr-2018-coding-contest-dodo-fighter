@@ -170,7 +170,7 @@ class Match(Base):
     def terminal(self):
         child = self
         while child.p1_child or child.p2_child:
-            child = self.p1_child or self.p2_child
+            child = child.p1_child or child.p2_child
         return child
 
     @property

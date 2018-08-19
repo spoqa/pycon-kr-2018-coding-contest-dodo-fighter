@@ -512,7 +512,23 @@ body {
                 color: #a9afb3;
               }
 
+              .winner {
+                background-color: #4c80f1;
+                border-radius: 6px;
+                color: white;
+                padding: 4px 10px 4px 10px;
+                margin-left: 8px;
+              }
+
+              .draw {
+                text-decoration: line-through;
+                color: #c3d3d6;
+              }
+
               .player {
+                .group {
+                  color: #878d91;
+                }
                 font-weight: bold;
               }
 
