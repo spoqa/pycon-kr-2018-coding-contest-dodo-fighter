@@ -146,7 +146,7 @@ class ExternalScriptAgent(Agent):
 
     def reinitiate(self, app):
         if self.error:
-            self.open_subprocess()
+            self.open_subprocess(app)
             self.error = False
 
     def _get_action(self, opponent, match_records: typing.Sequence[str],
@@ -357,10 +357,10 @@ def run_matches(app: App,
             max_wins_user = app.game_round_count - 1
             if wins[0] == max_wins_user or wins[1] == max_wins_user:
                 break
-        if isinstance(p1, ExternalScriptAgent) and p1.error:
-            p1.reinitiate(app)
-        if isinstance(p2, ExternalScriptAgent) and p2.error:
-            p2.reinitiate(app)
+            if isinstance(p1a, ExternalScriptAgent) and p1a.error:
+                p1a.reinitiate(app)
+            if isinstance(p2a, ExternalScriptAgent) and p2a.error:
+                p2a.reinitiate(app)
     if wins[0] == wins[1]:
         return None, data
     elif wins[0] > wins[1]:

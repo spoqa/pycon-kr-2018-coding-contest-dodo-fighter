@@ -370,8 +370,8 @@ def submit(tournament_id: uuid.UUID):
                 current_app, tf.name,
                 FixedAgent(Action.idle)
             )
-            if winner != 0:
-                return jsonify(result='failed', error='test_not_passed')
+            #if winner != 0:
+            #    return jsonify(result='failed', error='test_not_passed')
         except ScriptException as e:
             return jsonify(result='failed', error='error_in_code',
                            output=e.output)
