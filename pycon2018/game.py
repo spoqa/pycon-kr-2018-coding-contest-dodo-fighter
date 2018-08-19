@@ -335,10 +335,6 @@ def run_matches(app: App,
     data = []
     wins = [0, 0]
     if isinstance(p1, str):
-        p1p = subprocess.Popen([app.game_evaluator_path, p1],
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
         p1a = ExternalScriptAgent(app, p1)
     elif not isinstance(p1, Agent):
         raise TypeError('p1 should be an agent or a string')

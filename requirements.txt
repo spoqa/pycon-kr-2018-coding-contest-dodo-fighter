@@ -8,6 +8,7 @@ libsass >= 0.14.5, < 0.15
 psycogreen >= 1.0, < 1.1
 psycopg2 >= 2.7.5, < 2.8
 python-dateutil >= 2.7.3, < 2.8
+pytz
 raven[flask] >= 6.9.0, < 7.0
 requests >= 2.19.1, < 2.20
 settei >= 0.5.0, < 0.6

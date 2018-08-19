@@ -1,10 +1,9 @@
-import datetime
 import uuid
 
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import backref, object_session, relationship
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.types import Boolean, DateTime, Integer, String, Text, Unicode
+from sqlalchemy.types import Boolean, Integer, String, Text, Unicode
 from sqlalchemy_utils import UUIDType
 
 from .orm import Base
@@ -60,7 +59,7 @@ class Audit(Base):
 
     user_id = Column(UUIDType, ForeignKey(User.id), nullable=False)
     user = relationship(User, uselist=False, lazy='joined')
-    
+
     code = Column(Text, nullable=False)
 
     created_at = Column(UtcDateTime, nullable=False,

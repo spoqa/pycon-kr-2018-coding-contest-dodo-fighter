@@ -1,5 +1,4 @@
 import datetime
-import dateutil
 import functools
 import random
 import tempfile
@@ -604,7 +603,6 @@ def create_web_app(app: App) -> Flask:
     if wsgi.config.get('CDN_DOMAIN'):
         cdn = CDN()
         cdn.init_app(wsgi)
-        
     if app.sentry_dsn:
         Sentry(wsgi, dsn=app.sentry_dsn)
     return wsgi

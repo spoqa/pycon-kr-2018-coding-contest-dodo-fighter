@@ -83,7 +83,7 @@ def make_tempfile_public(temp: tempfile.TemporaryFile):
 def get_match_set_group_names(
     session: Session, tournament
 ) -> collections.OrderedDict:
-    from .entities import Tournament, TournamentMatchSet
+    from .entities import TournamentMatchSet
     az = string.ascii_uppercase
     query = session.query(TournamentMatchSet.id).filter_by(
         tournament=tournament
