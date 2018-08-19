@@ -28,7 +28,7 @@
     
     var match_set_id = {% if match_set %}'{{ match_set.id }}'{% else %}null{% endif %};
     var tournament_id = {% if tournament %}'{{ tournament.id }}'{% else %}null{% endif %};
-    var undisclosed_clickable = {{ current_user.is_authenticated and current_user.moderator | tojson }};
+    var undisclosed_clickable = {{ (current_user.is_authenticated and current_user.moderator) | tojson }};
 
 
     $(document).ready(function() {

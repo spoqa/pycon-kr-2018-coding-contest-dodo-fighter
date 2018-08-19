@@ -82,7 +82,9 @@
   </section>
   <section class="section section-tournament" id="section-tournament">
     <h2 class="section-title">대회 참가 현황</h2>
-    <p>코드 제출 기한 <span>2018년 8월 18일 09:00 - 2018년 8월 19일 16:00</span></p>
+    {% if current_tournament %}
+      <p>코드 제출 기한 <span>{{ current_tournament.begin_at | kst }} - {{ current_tournament.finish_at | kst }}</span></p>
+    {% endif %}
 
     <div class="card">
       {% if current_user.is_authenticated %}
@@ -116,7 +118,7 @@
                   <a class="btn btn-solid" href="{{ url_for('.game_subtournament', set_id=submission.match_item.tournament_match_set.id) }}">조 결과 보기</a>
                 </div>
               {% endif %}
-            {% else %}
+            {% elif current_tournament.active %}
               <form action="{{ url_for('.submit', tournament_id=current_tournament.id) }}" method="POST" enctype="multipart/form-data" class="code-form">
                 <input type="file" class="script code-script" style="display: none;" name="script" />
                 <button class="btn btn-solid code-submit">{% if submission %}코드 수정하기{% else %}코드 제출하기{% endif %}</button>

@@ -98,6 +98,10 @@ def check_moderator():
 @ep.before_request
 def inject_current_tournament():
     g.current_tournament = Tournament.get_current(session)
+    if not g.current_tournament and current_app.default_tournament_id:
+        g.current_tournament = session.query(Tournament).filter_by(
+            id=current_app.default_tournament_id
+        ).one_or_none()
 
 
 @ep.route('/teaser')

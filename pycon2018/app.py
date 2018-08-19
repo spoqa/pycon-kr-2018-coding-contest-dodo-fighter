@@ -66,6 +66,10 @@ class App(Configuration):
         'sentry.dsn', str, default=None
     )
 
+    default_tournament_id = config_property(
+        'tournament.default_id', str, default=None
+    )
+
     @property
     def game_hit_point_range(self) -> typing.Tuple[int]:
         return (self.game_hit_point_min, self.game_hit_point_max)
