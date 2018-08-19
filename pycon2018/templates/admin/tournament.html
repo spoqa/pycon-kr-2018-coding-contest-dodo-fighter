@@ -8,7 +8,7 @@
   {% if swm_count > 0 %}
     <ul>
       {% for item in submissions_without_match %}
-        <li>{{ item.id }} <a href="https://github.com/{{ item.user.display_name }}">(@{{ item.user.display_name }})</a></li>
+        <li><a href="{{ url_for('.submission', submission_id=item.id) }}">{{ item.id }}</a> <a href="https://github.com/{{ item.user.display_name }}">(@{{ item.user.display_name }})</a></li>
       {% endfor %}
     </ul>
     <form action="{{ url_for('.create_match_set', tournament_id=tournament.id) }}" method="POST">
@@ -32,7 +32,10 @@
     작업:
     {% if not match_set.final_match %}<a href="{{ url_for('.create_matches', set_id=match_set.id) }}">매칭</a>{% endif %}
     {% if match_set.final_match and not match_set.tournament.final_match %}<a href="{{ url_for('.clear_matches', set_id=match_set.id) }}">매칭기록 삭제</a>{% endif %}
-    {% if match_set.final_match %}<a href="{{ url_for('.match_set', set_id=match_set.id) }}">매칭기록 보기</a>{% endif %}
+    {% if match_set.final_match %}
+      <a href="{{ url_for('.match_set', set_id=match_set.id) }}">매칭기록 보기</a>
+      <a href="{{ url_for('ep.game_subtournament', set_id=match_set.id) }}">경기 보기</a>
+    {% endif %}
   {% endfor %}
 
   <h2>결산</h2>
