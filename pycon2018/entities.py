@@ -4,11 +4,12 @@ import uuid
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.orm import backref, object_session, relationship
 from sqlalchemy.schema import Column, ForeignKey, UniqueConstraint
-from sqlalchemy.sql.functions import now
 from sqlalchemy.types import Boolean, DateTime, Integer, String, Text, Unicode
 from sqlalchemy_utils import UUIDType
 
 from .orm import Base
+from .sqltypes import UtcDateTime
+from .util import utcnow
 
 
 class User(Base):
@@ -34,21 +35,21 @@ class User(Base):
 
 class Tournament(Base):
     id = Column(UUIDType, primary_key=True, default=uuid.uuid4)
-    begin_at = Column(DateTime, nullable=False)
-    finish_at = Column(DateTime, nullable=False)
+    begin_at = Column(UtcDateTime, nullable=False)
+    finish_at = Column(UtcDateTime, nullable=False)
 
     final_match_id = Column(UUIDType, ForeignKey('match.id'))
     final_match = relationship('Match', uselist=False)
 
     @property
     def active(self) -> bool:
-        return self.begin_at <= datetime.datetime.now() < self.finish_at
+        return self.begin_at <= utcnow() < self.finish_at
 
     @classmethod
     def get_current(cls, session):
         return session.query(cls).filter(
-            cls.begin_at <= now(),
-            now() < cls.finish_at
+            cls.begin_at <= utcnow(),
+            utcnow() < cls.finish_at
         ).first()
 
     __tablename__ = 'tournament'
@@ -62,8 +63,8 @@ class Audit(Base):
     
     code = Column(Text, nullable=False)
 
-    created_at = Column(DateTime, nullable=False,
-                        default=datetime.datetime.now,
+    created_at = Column(UtcDateTime, nullable=False,
+                        default=utcnow,
                         index=True)
 
     __tablename__ = 'audit'
@@ -81,8 +82,8 @@ class Submission(Base):
 
     code = Column(Text, nullable=False)
 
-    created_at = Column(DateTime, nullable=False,
-                        default=datetime.datetime.now)
+    created_at = Column(UtcDateTime, nullable=False,
+                        default=utcnow)
 
     __table_args__ = (
         UniqueConstraint('tournament_id', 'user_id',
@@ -94,8 +95,7 @@ class Submission(Base):
 class TournamentMatchSet(Base):
     id = Column(UUIDType, primary_key=True, default=uuid.uuid4)
 
-    created_at = Column(DateTime, nullable=False,
-                        default=datetime.datetime.now)
+    created_at = Column(UtcDateTime, nullable=False, default=utcnow)
 
     tournament_id = Column(UUIDType, ForeignKey(Tournament.id),
                            nullable=False)

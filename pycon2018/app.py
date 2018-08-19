@@ -1,8 +1,6 @@
 import collections
-import datetime
 import typing
 
-from dateutil.parser import parse as parse_datetime
 from settei import config_property, Configuration
 from sqlalchemy.engine import create_engine, Engine
 from werkzeug.datastructures import ImmutableDict

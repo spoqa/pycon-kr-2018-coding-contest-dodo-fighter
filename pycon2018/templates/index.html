@@ -99,7 +99,7 @@
           <span class="status">
             <p class="display-name">{{ current_user.display_name }}</p>
             {% if submission %}
-              <p class="submission">{{ submission.created_at.strftime('%Y-%m-%d %H:%m') }}에 제출</p>
+              <p class="submission">{{ submission.created_at | kst }}에 제출</p>
             {% endif %}
           </span>
           {% if current_tournament %}

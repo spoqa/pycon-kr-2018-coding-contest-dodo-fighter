@@ -1,3 +1,5 @@
+import datetime
+import dateutil
 import functools
 import random
 import tempfile
@@ -9,13 +11,13 @@ from flask import (Blueprint, Flask, abort, current_app as current_flask_app,
 from flask_cdn import CDN
 from flask_login import (LoginManager, current_user, login_required,
                          login_user, logout_user)
+from pytz import timezone
 from raven.contrib.flask import Sentry
 from requests import get, post
 from sassutils.wsgi import SassMiddleware
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.orm.session import Session
 from sqlalchemy.sql.expression import or_
-from sqlalchemy.sql.functions import now
 from werkzeug.local import LocalProxy
 from werkzeug.urls import url_decode
 
@@ -25,7 +27,7 @@ from .entities import (Audit, Match, Submission, Tournament,
 from .game import (Action, FixedAgent, RandomAgent, ScriptException,
                    run_matches, run_matches_submission)
 from .util import (build_match_tree, get_match_set_group_names,
-                   make_tempfile_public, ngroup)
+                   make_tempfile_public, ngroup, utcnow)
 
 
 current_app = LocalProxy(lambda: current_flask_app.config['APP'])
@@ -56,6 +58,13 @@ def close_session(exception=None):
         if exception is not None:
             s.rollback()
         s.close()
+
+
+kst = timezone('Asia/Seoul')
+
+
+def to_kst(datetime: datetime.datetime):
+    return datetime.astimezone(kst).strftime('%Y-%m-%d %H:%M')
 
 
 @login_manager.user_loader
@@ -375,7 +384,7 @@ def submit(tournament_id: uuid.UUID):
     ).one_or_none()
     if submission:
         submission.code = data
-        submission.created_at = now()
+        submission.created_at = utcnow()
     else:
         submission = Submission(tournament=tournament, user=current_user,
                                 code=data)
@@ -584,6 +593,7 @@ def create_web_app(app: App) -> Flask:
     wsgi.register_blueprint(admin)
     wsgi.teardown_request(close_session)
     wsgi.errorhandler(NoResultFound)(handle_no_result_found)
+    wsgi.jinja_env.filters['kst'] = to_kst
     wsgi.config.update(app.web_config)
     wsgi.config['APP'] = app
     wsgi.secret_key = app.secret_key

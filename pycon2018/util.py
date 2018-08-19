@@ -1,4 +1,6 @@
 import collections
+import datetime
+import functools
 import itertools
 import os
 import stat
@@ -8,8 +10,6 @@ import typing
 
 from sqlalchemy.orm import Session
 
-from .entities import Match, Tournament, TournamentMatchSet
-
 
 def ngroup(n: int, iterable: typing.Iterable[typing.Any], fillvalue=None):
     args = [iter(iterable)] * n
@@ -17,12 +17,12 @@ def ngroup(n: int, iterable: typing.Iterable[typing.Any], fillvalue=None):
 
 
 def build_match_tree(
-        session: Session, terminal: Match, final: bool, full_disclosure: bool
+        session: Session, terminal, final: bool, full_disclosure: bool
 ) -> typing.Mapping[int, typing.Any]:
     matches_by_iteration = {}
     result = []
 
-    def traverse(node: Match):
+    def traverse(node):
         if node.iteration not in matches_by_iteration:
             matches_by_iteration[node.iteration] = []
         matches_by_iteration[node.iteration].append(node)
@@ -81,8 +81,9 @@ def make_tempfile_public(temp: tempfile.TemporaryFile):
 
 
 def get_match_set_group_names(
-        session: Session, tournament: Tournament
+    session: Session, tournament
 ) -> collections.OrderedDict:
+    from .entities import Tournament, TournamentMatchSet
     az = string.ascii_uppercase
     query = session.query(TournamentMatchSet.id).filter_by(
         tournament=tournament
@@ -95,3 +96,6 @@ def get_match_set_group_names(
             name = az[index]
         result[id] = name
     return result
+
+
+utcnow = functools.partial(datetime.datetime.now, datetime.timezone.utc)
