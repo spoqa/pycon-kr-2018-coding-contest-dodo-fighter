@@ -129,9 +129,25 @@ class ScriptException(Exception):
 
 class ExternalScriptAgent(Agent):
 
-    def __init__(self, handle: subprocess.Popen):
+    def __init__(self, app: App, path: str):
         super(ExternalScriptAgent, self).__init__()
-        self.handle = handle
+        self.handle = None
+        self.path = path
+        self.error = False
+        self.open_subprocess(app)
+
+    def open_subprocess(self, app):
+        if self.handle is not None:
+            self.handle.terminate()
+        self.handle = subprocess.Popen([app.game_evaluator_path, self.path],
+                                       stdout=subprocess.PIPE,
+                                       stdin=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+
+    def reinitiate(self, app):
+        if self.error:
+            self.open_subprocess()
+            self.error = False
 
     def _get_action(self, opponent, match_records: typing.Sequence[str],
                     time_left: int) -> Action:
@@ -143,18 +159,22 @@ class ExternalScriptAgent(Agent):
             self.handle.stdin.flush()
         except Exception:
             err = self.handle.stderr.read(1024).decode('utf-8')
+            self.error = True
             raise ScriptException('Broken pipe.', err)
         action = self.handle.stdout.readline().decode('utf-8').strip()
         if not action:
             err = self.handle.stderr.read(1024).decode('utf-8')
+            self.error = True
             raise ScriptException('Unexpected end of file.', err)
         try:
             return Action(action)
         except ValueError:
+            self.error = True
             raise ScriptException(f'Unknown action {action}', None)
 
     def __exit__(self, exception_type, exception_value, traceback):
-        self.handle.terminate()
+        if self.handle is not None:
+            self.handle.terminate()
 
 
 def evaluate(app: App, p1: Agent, p2: Agent,
@@ -319,21 +339,21 @@ def run_matches(app: App,
                                stdout=subprocess.PIPE,
                                stdin=subprocess.PIPE,
                                stderr=subprocess.PIPE)
-        p1 = ExternalScriptAgent(p1p)
+        p1a = ExternalScriptAgent(app, p1)
     elif not isinstance(p1, Agent):
         raise TypeError('p1 should be an agent or a string')
+    else:
+        p1a = p1
     if isinstance(p2, str):
-        p2p = subprocess.Popen([app.game_evaluator_path, p2],
-                               stdout=subprocess.PIPE,
-                               stdin=subprocess.PIPE,
-                               stderr=subprocess.PIPE)
-        p2 = ExternalScriptAgent(p2p)
+        p2a = ExternalScriptAgent(app, p2)
     elif not isinstance(p2, Agent):
         raise TypeError('p2 should be an agent or a string')
-    with p1, p2:
+    else:
+        p2a = p2
+    with p1a, p2a:
         match_records = []
         for i in range(app.game_round_count):
-            winner, matchdata = evaluate(app, p1, p2, match_records, raise_)
+            winner, matchdata = evaluate(app, p1a, p2a, match_records, raise_)
             data.append(matchdata)
             match_records.append(winner)
             if winner is not None:
@@ -341,6 +361,10 @@ def run_matches(app: App,
             max_wins_user = app.game_round_count - 1
             if wins[0] == max_wins_user or wins[1] == max_wins_user:
                 break
+        if isinstance(p1, ExternalScriptAgent) and p1.error:
+            p1.reinitiate(app)
+        if isinstance(p2, ExternalScriptAgent) and p2.error:
+            p2.reinitiate(app)
     if wins[0] == wins[1]:
         return None, data
     elif wins[0] > wins[1]:

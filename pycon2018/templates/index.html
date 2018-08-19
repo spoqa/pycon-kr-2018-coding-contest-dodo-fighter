@@ -91,6 +91,7 @@
           <p class="match-set">
             {% if submission and submission.match_item %}
               {{ submission.match_item.tournament_match_set.group_name }}조
+            {% elif not current_tournament or current_tournament.final_match %}
             {% else %}
               대기 중
             {% endif %}
@@ -104,7 +105,9 @@
           {% if current_tournament %}
             {% if current_tournament.final_match %}
               <div class="result-view">
-                <a class="btn btn-solid" href="{{ url_for('.game_subtournament', set_id=submission.match_item.tournament_match_set.id) }}">조 결과 보기</a>
+                {% if submission %}
+                  <a class="btn btn-solid" href="{{ url_for('.game_subtournament', set_id=submission.match_item.tournament_match_set.id) }}">조 결과 보기</a>
+                {% endif %}
                 <a class="btn btn-solid" href="{{ url_for('.game', tournament_id=current_tournament.id) }}">최종 결과 보기</a>
               </div>
             {% elif submission and submission.match_item %}

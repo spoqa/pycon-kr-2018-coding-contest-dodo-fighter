@@ -37,7 +37,7 @@ class App(Configuration):
     )
 
     game_hit_point_min = config_property(
-        'game.hit_point_min', int, default=8
+        'game.hit_point_min', int, default=12
     )
 
     game_hit_point_max = config_property(
