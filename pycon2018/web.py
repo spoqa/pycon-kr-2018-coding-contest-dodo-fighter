@@ -24,7 +24,7 @@ from .app import App
 from .entities import (Audit, Match, Submission, Tournament,
                        TournamentMatchSet, TournamentMatchSetItem, User)
 from .game import (Action, FixedAgent, RandomAgent, ScriptException,
-                   run_matches, run_matches_submission)
+                   run_matches)
 from .util import (build_match_tree, get_match_set_group_names,
                    make_tempfile_public, ngroup, utcnow)
 
@@ -64,6 +64,18 @@ kst = timezone('Asia/Seoul')
 
 def to_kst(datetime: datetime.datetime):
     return datetime.astimezone(kst).strftime('%Y-%m-%d %H:%M')
+
+
+def run_matches_submission(p1: Submission, p2: Submission):
+    with tempfile.NamedTemporaryFile() as tf1, \
+         tempfile.NamedTemporaryFile() as tf2:
+        make_tempfile_public(tf1)
+        make_tempfile_public(tf2)
+        tf1.write(p1.code.encode('utf-8'))
+        tf1.flush()
+        tf2.write(p2.code.encode('utf-8'))
+        tf2.flush()
+        return run_matches(current_app, tf1.name, tf2.name)
 
 
 @login_manager.user_loader
@@ -233,7 +245,7 @@ def random_match():
     p1s = session.query(Submission).offset(p1o).limit(1).first()
     p2s = session.query(Submission).offset(p2o).limit(1).first()
     assert p1s and p2s
-    winner, data = run_matches_submission(current_app, p1s, p2s)
+    winner, data = run_matches_submission(p1s, p2s)
     if winner == 0:
         winner_ = 'p1'
     elif winner == 1:
@@ -374,8 +386,8 @@ def submit(tournament_id: uuid.UUID):
                 current_app, tf.name,
                 FixedAgent(Action.idle)
             )
-            #if winner != 0:
-            #    return jsonify(result='failed', error='test_not_passed')
+            if winner != 0:
+                return jsonify(result='failed', error='test_not_passed')
         except ScriptException as e:
             return jsonify(result='failed', error='error_in_code',
                            output=e.output)
@@ -486,7 +498,7 @@ def create_matches(set_id: uuid.UUID):
             )
             if pair[0][0] is not None and pair[1][0] is not None:
                 winner, data = run_matches_submission(
-                    current_app, pair[0][0].submission, pair[1][0].submission
+                    pair[0][0].submission, pair[1][0].submission
                 )
                 if winner is not None:
                     nsubs.append((pair[winner][0], match))
@@ -540,7 +552,6 @@ def finalize_matches(tournament_id: uuid.UUID):
             )
             if pair[0][0] is not None and pair[1][0] is not None:
                 winner, data = run_matches_submission(
-                    current_app,
                     pair[0][0].final_match.winner.submission,
                     pair[1][0].final_match.winner.submission
                 )

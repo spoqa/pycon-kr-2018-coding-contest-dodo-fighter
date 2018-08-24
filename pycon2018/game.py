@@ -3,12 +3,9 @@ import enum
 import json
 import random
 import subprocess
-import tempfile
 import typing
 
 from .app import App
-from .entities import Submission
-from .util import make_tempfile_public
 
 
 class Action(enum.Enum):
@@ -367,18 +364,6 @@ def run_matches(app: App,
         return 0, data
     else:
         return 1, data
-
-
-def run_matches_submission(app: App, p1: Submission, p2: Submission):
-    with tempfile.NamedTemporaryFile() as tf1, \
-         tempfile.NamedTemporaryFile() as tf2:
-        make_tempfile_public(tf1)
-        make_tempfile_public(tf2)
-        tf1.write(p1.code.encode('utf-8'))
-        tf1.flush()
-        tf2.write(p2.code.encode('utf-8'))
-        tf2.flush()
-        return run_matches(app, tf1.name, tf2.name)
 
 
 def test():
